@@ -1,7 +1,7 @@
 ﻿{
 	"deckDir": "decks/",
 	"imageDir": "images/",
-	"setAssetDir": "/setAssets/",
+	"setAssetDir": "setAssets/",
 	"setAssetVersion": "3",
 	"sendgrid": {
 		"key" : "<SENDGRID API KEY>",
@@ -14,7 +14,7 @@
 	"tokenListDir": "misc/tokens.json",
 	"tokenImageDir": "tokenAssets/",
 	"transformMapDir": "misc/transforms.json",
-	"hostUrlPrefix": "http://www.frogtown.me",
+	"hostUrlPrefix": ".",
 	"cardNameReplacements":[
 		{
 			"hard":"æ",

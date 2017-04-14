@@ -69,9 +69,6 @@ public class DeckMaker {
 				clientScanner = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
 				clientWriter = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
 				try{
-					while(clientScanner.ready()){
-						System.out.println(clientScanner.readLine());
-					}
 					HandleClient(clientScanner, clientWriter);
 				}catch(Exception e){e.printStackTrace();}
 			} catch (Exception e) {
@@ -151,6 +148,14 @@ public class DeckMaker {
 			FrogUtils.Debug("Downloaded images, with " + newDeck.unknownCards.size() + " unknown");
 			if(newDeck.unknownCards.size() == 0){
 				ImageUtils.StitchDeck(newDeck);
+				int cardsPerDeck = 69;
+				
+				int regularDecks = (int) Math.ceil((newDeck.cardList.size() + newDeck.tokens.size())/(double)cardsPerDeck);
+				int transformDecks = 2 * (int) Math.ceil(newDeck.transformList.size()/(double)cardsPerDeck);
+				int deckAmt = regularDecks + transformDecks;
+				for(int i = 0; i < deckAmt; i++){
+					newDeck.deckLinks[i] = JsonUtils.postImage(Config.hostUrlPrefix + Config.publicDeckDir + newDeck.deckId + i + ".jpg");
+				}
 				JsonUtils.BuildJSONFile(newDeck);
 			}else{
 				badCardArray = new JsonArray();

@@ -1,10 +1,26 @@
 package utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
+import org.apache.http.ParseException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.util.EntityUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -64,7 +80,55 @@ public class JsonUtils {
 		
 		return statePos;
 	}
-	
+	public static String postImage(String f){
+		
+		HttpClient httpclient = new DefaultHttpClient();
+	    httpclient.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
+
+	    HttpPost httppost = new HttpPost("https://imagebin.ca/upload.php");
+	    File file = new File(f);
+
+	    MultipartEntity mpEntity = new MultipartEntity();
+	    ContentBody cbFile = new FileBody(file, "image/jpeg");
+	    mpEntity.addPart("file", cbFile);
+
+	    
+	    httppost.setEntity(mpEntity);
+	    System.out.println("executing request " + httppost.getRequestLine());
+	    HttpResponse response;
+		try {
+			response = httpclient.execute(httppost);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		}
+	    HttpEntity resEntity = response.getEntity();
+
+	    System.out.println(response.getStatusLine());
+	    if (resEntity != null) {
+	      try {
+			String res = EntityUtils.toString(resEntity);
+			String[] resSplit = res.split("\n");
+			return resSplit[1].substring(resSplit[1].indexOf(':')+1);
+		} catch (ParseException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    }
+	    if (resEntity != null) {
+	      try {
+	    	  StringWriter writer = new StringWriter();
+	    	  IOUtils.copy(resEntity.getContent(), writer);
+	    	  return  writer.toString();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		}
+	    }
+	    return "";
+	}
 	public static JsonObject NewDeckStateObject(ArrayList<Integer> deckIds, Deck deck){
 		int cardsPerDeck = 69;
 		int regularDecks = (int) Math.ceil((deck.cardList.size() + deck.tokens.size())/(double)cardsPerDeck);

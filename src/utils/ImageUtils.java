@@ -206,7 +206,7 @@ public class ImageUtils {
 		
 		for(int i = 0; i < deckAmt; i++){
 			deck.deckFileNames[i] = Config.deckDir + deck.deckId + i + ".jpg";
-			deck.deckLinks[i] = Config.hostUrlPrefix + Config.publicDeckDir + deck.deckId + i + ".jpg";
+			//deck.deckLinks[i] = JsonUtils.postImage(Config.hostUrlPrefix + Config.publicDeckDir + deck.deckId + i + ".jpg");
 			
 			if(deck instanceof DraftDeck){
 				DraftDeck draft = (DraftDeck)deck;
@@ -305,6 +305,7 @@ public class ImageUtils {
 			gs[i].dispose();
 			if(!draftAssetsExist){
 				SaveImage(deck.buffers[i], deck.deckFileNames[i], deck.compressionLevel);
+				
 			}
 		}
 	}
