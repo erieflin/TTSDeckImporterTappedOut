@@ -124,13 +124,16 @@ public class CsvConverterDeck {
 	public static void main(String[] args) {
 		CsvConverterDeck deck = new CsvConverterDeck();
 		Scanner in = new Scanner(System.in);
-		//String url = in.nextLine();
-		//String commander = in.nextLine();
-		//String name = in.nextLine();
+		System.out.println("please enter url of tapped out deck list");
+		String url = in.nextLine();
+		if(!url.contains("?")){
+			url +="?fmt=txt";
+		}
+		System.out.println("please enter commander name");
+		String commander = in.nextLine();
+		System.out.println("please enter deck name");
+		String name = in.nextLine();
 		String response;
-		String url = "http://tappedout.net/mtg-decks/sen-triplets-edh-whats-yours-is-mine/?fmt=txt";
-		String commander = "Sen Triplets";
-		String name = "sen-triplets-edh-whats-yours-is-mine";
 		try {
 			response = getHTML(url);
 		} catch (Exception e) {
