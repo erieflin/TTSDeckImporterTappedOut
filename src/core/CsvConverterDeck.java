@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class CsvConverterDeck {
 		sb.append(COMMANDERLABEL + "\n");
 		sb.append(commander + "\n");
 		sb.append("ENDDECK" + "\n");
-		sb.append("ENDDECK"+"\n");
+		sb.append("ENDDECK" + "\n");
 		sb.append("\n");
 		return sb.toString();
 	}
@@ -72,10 +73,7 @@ public class CsvConverterDeck {
 		deckMetadata.setId(name);
 
 		Scanner scan = new Scanner(input);
-		if (!scan.hasNext()) {
-			return;
-		}
-		scan.nextLine();
+
 		boolean main = true;
 		while (scan.hasNext()) {
 			String csv = scan.nextLine();
@@ -125,10 +123,12 @@ public class CsvConverterDeck {
 
 	}
 
-	public void handleLocally(CsvConverterDeck deck, String name) {
-		System.out.println(deck);
+	public void handleLocally(String name) {
+		handleString(toString(), name);
+	}
+	public static void handleString(String deckString, String name){
 		// convert String into InputStream
-		InputStream is = new ByteArrayInputStream(deck.toString().getBytes());
+		InputStream is = new ByteArrayInputStream(deckString.getBytes());
 
 		// read it with BufferedReader
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -161,20 +161,20 @@ public class CsvConverterDeck {
 	public void handleRemotly() throws IOException {
 		deckMetadata.setId("eTest");
 		String rawData = toString();
-		   Socket socket = null;
-		    try {
-		        socket = new Socket("http://www.frogtown.me/newdeck", 80);
-		        OutputStream outstream = socket .getOutputStream(); 
-		        PrintWriter out = new PrintWriter(outstream,true);
-		        Scanner scan = new Scanner(socket.getInputStream());
-		        out.println(rawData);
-		        String response = scan.nextLine();
-		        System.out.println(response);
-		    }catch(Exception e){
-		    	e.printStackTrace();
-		    }
+		Socket socket = null;
+		try {
+			socket = new Socket("http://www.frogtown.me/newdeck", 80);
+			OutputStream outstream = socket.getOutputStream();
+			PrintWriter out = new PrintWriter(outstream, true);
+			Scanner scan = new Scanner(socket.getInputStream());
+			out.println(rawData);
+			String response = scan.nextLine();
+			System.out.println(response);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		// writeDataToFile(conn.getInputStream(), "test");
-		//System.out.println(EntityUtils.toString(response.getEntity()));
+		// System.out.println(EntityUtils.toString(response.getEntity()));
 	}
 
 	private void writeDataToFile(InputStream inputStream, String filename) {
@@ -208,18 +208,111 @@ public class CsvConverterDeck {
 		}
 	}
 
+	private static File[] getFilesFromDirectory(String directory) {
+		File[] listOfFiles;
+		File folder = new File(directory);
+		if (!folder.exists()) {
+			folder.mkdir();
+
+		}
+		listOfFiles = folder.listFiles();
+		if(listOfFiles == null){
+			return new File[0];
+		}
+		return listOfFiles;
+
+	}
+
 	public static void main(String[] args) {
-		CsvConverterDeck deck = new CsvConverterDeck();
+		CsvConverterDeck deck;
 		Scanner in = new Scanner(System.in);
+		String url = "";
+		String commander="";
+		String name="";
+		System.out.println("Would you like to read from input files?");
+		String answer = in.nextLine();
+		Scanner s;
+		if(answer.equalsIgnoreCase("yes")||answer.equalsIgnoreCase("y")){
+			File[] tappedOutFiles = getFilesFromDirectory("./input/tappedOut");
+			File cardList = new File("./input/cardList");
+			
+			if(!cardList.exists()){
+				cardList.mkdirs();
+			}
+			for(File file: tappedOutFiles){
+				
+				try {
+					s = new Scanner(file);
+				
+				 int i =0;
+				 while(s.hasNextLine()){
+					 String line = s.nextLine();
+					 i++;
+					 if(i%3 == 1){
+						 url = line;
+						 if (!url.contains("?")) {
+								url += "?fmt=txt";
+							}
+					 }
+					 if(i%3 == 2){
+						 commander = line;
+					 }
+					 if(i%3 == 0){
+						 name = line;
+						 String response;
+							try {
+								response = getHTML(url);
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								return;
+							}
+							deck = new CsvConverterDeck();
+							deck.loadDeckFromText(response, commander, name);
+						
+							File f = new File(cardList.getPath()+"/"+name+".txt");
+							PrintWriter pw = new PrintWriter(f);
+							pw.write(deck.toString());
+							pw.flush();
+							pw.close();
+					 }
+				 }
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			}
+			File[] cardListFiles = getFilesFromDirectory("./input/cardList");
+			
+			for(File file: cardListFiles){
+				try {
+				name = file.getName().replaceAll(".txt", "");
+			
+					s = new Scanner(file);
+				
+				StringBuilder sb = new StringBuilder();
+				while(s.hasNextLine()){
+					sb.append(s.nextLine()+"\n");
+				}
+				handleString(sb.toString(), name);
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}else{
+			
+		deck= new CsvConverterDeck();
+		
 		System.out.println("please enter url of tapped out deck list");
-		String url = in.nextLine();
+		 url = in.nextLine();
 		if (!url.contains("?")) {
 			url += "?fmt=txt";
 		}
 		System.out.println("please enter commander name");
-		String commander = in.nextLine();
+		commander = in.nextLine();
 		System.out.println("please enter deck name");
-		String name = in.nextLine();
+		name = in.nextLine();
 		String response;
 		try {
 			response = getHTML(url);
@@ -229,7 +322,8 @@ public class CsvConverterDeck {
 			return;
 		}
 		deck.loadDeckFromText(response, commander, name);
-		deck.handleLocally(deck, name);
+		deck.handleLocally(name);
+		}
 	}
 
 	public static String getHTML(String urlToRead) throws Exception {
