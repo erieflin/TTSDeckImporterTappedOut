@@ -5,7 +5,7 @@ import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import core.Card;
+import core.FrogCard;
 import core.Config;
 import utils.FrogUtils;
 import utils.ImageUtils;
@@ -16,14 +16,14 @@ public class MagicCardsInfoRetriever extends CardRetriever{
 	public long lastConnectionFail = 0;
 
 	@Override
-	public boolean LoadCard(Card card) {
+	public boolean LoadCard(FrogCard card) {
 		boolean success = true;
 		success = LoadCard(card, false) && success;
 		if(card.transformName != null) success = LoadCard(card, true) && success;
 		return success;
 	}
 	
-	public boolean LoadCard(Card card, boolean isBack){
+	public boolean LoadCard(FrogCard card, boolean isBack){
 		String cardKey = isBack ? card.transformCardKey : card.cardKey;
 		String cardName = isBack ? card.transformName : card.name;
 		String cleanCardName = FrogUtils.ReplaceHardChars(cardName);
@@ -103,7 +103,7 @@ public class MagicCardsInfoRetriever extends CardRetriever{
 		return set;
 	}
 	
-	public static String RequestCard(Card card, String cardName){
+	public static String RequestCard(FrogCard card, String cardName){
 		String processedName = "\""+cardName.trim().toLowerCase()+"\"";
 		if(card.set != null && card.set.length() > 0) processedName +=" e:"+card.set;
 		if(card.language != null && card.language.length() > 0)	processedName +=" l:"+card.language;

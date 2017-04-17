@@ -3,14 +3,14 @@ package utils.cardretrieval;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-import core.Card;
+import core.FrogCard;
 import core.Config;
 import utils.ImageUtils;
 
 public class GathererRetriever extends CardRetriever {
 
 	@Override
-	public boolean LoadCard(Card card) {
+	public boolean LoadCard(FrogCard card) {
 		if(card.multiverseId != null){
 			card.imageFileName = Config.imageDir + card.multiverseId+".jpg";
 			File f = new File(card.imageFileName);

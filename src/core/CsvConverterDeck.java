@@ -85,7 +85,6 @@ public class CsvConverterDeck {
 					for (int i = 0; i < Integer.parseInt(data[0]); ++i) {
 						if (main) {
 							if (!data[1].equalsIgnoreCase(commander)) {
-								mainBoard.add(data[1]);
 							}
 						} else {
 							if (data[0].equalsIgnoreCase("side")) {
@@ -101,6 +100,9 @@ public class CsvConverterDeck {
 	public void loadDeckFromCsv(String input, String commander, String name) {
 		this.commander = commander;
 		deckMetadata.setName(name);
+		deckMetadata.setDeckName(name);
+		deckMetadata.setId(name);
+		
 		Scanner scan = new Scanner(input);
 		if (!scan.hasNext()) {
 			return;
@@ -108,14 +110,38 @@ public class CsvConverterDeck {
 		scan.nextLine();
 		while (scan.hasNext()) {
 			String csv = scan.nextLine();
+			
+			//Fix commas in names
+			final String replacer = "~";
+			csv = csv.replaceAll("\"(.*),(.*)\"", "$1" + replacer + "$2");
+			
 			String[] data = csv.split(",");
+			
+			//Replace temporary character with comma
+			for(int i = 0; i < data.length; i++)
+			{
+				data[i] = data[i].replace(replacer, ",");
+			}
+			
+			if(csv.contains(replacer))
+			{
+				System.out.println("Used replacer, temp version: " + csv);
+				System.out.println("\tOriginal version: " + data[2]);
+			}
+			
 			for (int i = 0; i < Integer.parseInt(data[1]); ++i) {
+				
+				String formattedName = data[2];
+				
+				if(data.length >= 4)
+					formattedName += " [" + data[3] + "]";
+				
 				if (data[0].equalsIgnoreCase("side")) {
-					sideBoard.add(data[3]);
+					sideBoard.add(formattedName);
 				}
 				if (data[0].equalsIgnoreCase("main")) {
-					if (!data[3].equalsIgnoreCase(commander)) {
-						mainBoard.add(data[3]);
+					if (data.length > 3 && !data[3].equalsIgnoreCase(commander)) {
+						mainBoard.add(formattedName);
 					}
 				}
 			}
@@ -251,7 +277,7 @@ public class CsvConverterDeck {
 					 if(i%3 == 1){
 						 url = line;
 						 if (!url.contains("?")) {
-								url += "?fmt=txt";
+								url += "?fmt=csv";
 							}
 					 }
 					 if(i%3 == 2){
@@ -268,7 +294,7 @@ public class CsvConverterDeck {
 								return;
 							}
 							deck = new CsvConverterDeck();
-							deck.loadDeckFromText(response, commander, name);
+							deck.loadDeckFromCsv(response, commander, name);
 						
 							File f = new File(cardList.getPath()+"/"+name+".txt");
 							PrintWriter pw = new PrintWriter(f);
@@ -307,7 +333,7 @@ public class CsvConverterDeck {
 		System.out.println("please enter url of tapped out deck list");
 		 url = in.nextLine();
 		if (!url.contains("?")) {
-			url += "?fmt=txt";
+			url += "?fmt=csv";
 		}
 		System.out.println("please enter commander name");
 		commander = in.nextLine();
@@ -321,7 +347,7 @@ public class CsvConverterDeck {
 			e.printStackTrace();
 			return;
 		}
-		deck.loadDeckFromText(response, commander, name);
+		deck.loadDeckFromCsv(response, commander, name);
 		deck.handleLocally(name);
 		}
 	}

@@ -3,7 +3,7 @@ package utils.cardretrieval;
 
 import java.util.HashSet;
 
-import core.Card;
+import core.FrogCard;
 
 public abstract class CardRetriever {
 	public HashSet<String> failedCards;
@@ -16,13 +16,13 @@ public abstract class CardRetriever {
 		failedCards.clear();
 	}
 	
-	public void LoadFailed(Card card){
+	public void LoadFailed(FrogCard card){
 		failedCards.add(card.cardKey);
 	}
 	
-	public boolean HasCardFailed(Card card){
+	public boolean HasCardFailed(FrogCard card){
 		return failedCards.contains(card.cardKey);
 	}
 	
-	public abstract boolean LoadCard(Card card); 
+	public abstract boolean LoadCard(FrogCard card); 
 }

@@ -15,12 +15,13 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 
 import cardbuddies.Token;
-import core.Card;
+import core.FrogCard;
 import core.Config;
 import core.Deck;
 import core.DraftDeck;
 import utils.cardretrieval.CardRetriever;
 import utils.cardretrieval.GathererRetriever;
+import utils.cardretrieval.MTGOfficialRetriever;
 import utils.cardretrieval.MagicCardsInfoRetriever;
 import utils.cardretrieval.MythicSpoilerRetriever;
 
@@ -32,6 +33,7 @@ public class ImageUtils {
 	public static long resetTime = 0;
 	
 	static{
+		cardRetrievers.add(new MTGOfficialRetriever());
 		cardRetrievers.add(new MagicCardsInfoRetriever());
 		cardRetrievers.add(new MythicSpoilerRetriever());
 		cardRetrievers.add(new GathererRetriever());
@@ -79,7 +81,7 @@ public class ImageUtils {
 		AttemptClearFailedCards();
 
 		for(int i = deck.cardList.size()-1; i >= 0; i--){
-			Card card = deck.cardList.get(i);
+			FrogCard card = deck.cardList.get(i);
 			boolean success = false;
 			for(CardRetriever retriever : cardRetrievers){
 				if(!retriever.HasCardFailed(card)){
@@ -95,7 +97,7 @@ public class ImageUtils {
 		}
 
 		for(int i = deck.transformList.size()-1; i >= 0; i--){
-			Card card = deck.transformList.get(i);
+			FrogCard card = deck.transformList.get(i);
 			boolean success = false;
 			for(CardRetriever retriever : cardRetrievers){
 				if(!retriever.HasCardFailed(card)){
@@ -226,7 +228,7 @@ public class ImageUtils {
 		}
 		
 		int cardCount = 0;
-		for(Card card : deck.cardList){			
+		for(FrogCard card : deck.cardList){			
 			int deckNum = cardCount / cardsPerDeck;
 			int deckID = cardCount % cardsPerDeck;
 			card.jsonId = 100*(1+deckNum) + deckID;
@@ -275,7 +277,7 @@ public class ImageUtils {
 		if(cardCount%cardsPerDeck!=0){
 			cardCount += cardsPerDeck - (cardCount%cardsPerDeck);
 		}
-		for(Card card : deck.transformList){			
+		for(FrogCard card : deck.transformList){			
 			int deckNum = cardCount / cardsPerDeck;
 			int deckID = cardCount % cardsPerDeck;
 			card.transformJsonId = 100*(1+deckNum) + deckID;
