@@ -57,14 +57,15 @@ public class MTGOfficialRetriever extends CardRetriever
 		else
 			System.out.println("Loading " + name + ", saving to " + imgname + "...");
 		
-		List<Card> cards = CardAPI.getAllCards(Arrays.asList(new String [] {nameFilterHeader + name + setString}));
+		List<Card> cards = CardAPI.getAllCards(Arrays.asList(new String [] {nameFilterHeader + "\"" + name + "\"" + setString}));
+		
 		
 		while(cards.size() == 0)
 		{
 			if(setString != "")
 			{
 				System.out.println("Failed to load card from specified set, trying all sets.");
-				cards = CardAPI.getAllCards(Arrays.asList(new String [] {nameFilterHeader + name}));
+				cards = CardAPI.getAllCards(Arrays.asList(new String [] {nameFilterHeader + "\"" + name + "\""}));
 				setString = "";
 			}
 			else
@@ -79,7 +80,7 @@ public class MTGOfficialRetriever extends CardRetriever
 		int counter = cards.size() - 1;
 		String url = cards.get(counter).getImageUrl();
 		
-		while(url == null || !cards.get(counter).getName().equalsIgnoreCase(name))
+		while(url == null)
 		{
 			System.out.println("Card element " + counter + " failed...");
 			if(counter > 0)
