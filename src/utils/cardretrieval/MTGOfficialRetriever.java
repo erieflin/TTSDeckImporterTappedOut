@@ -45,7 +45,7 @@ public class MTGOfficialRetriever extends CardRetriever
 		
 		String setString = "";
 		
-		if(card.set != "" && card.set != null)
+		if(card.set.trim() != "" && card.set != null)
 		{
 			final String setFilterHeader = "set=";
 			String set = card.set;
@@ -69,7 +69,7 @@ public class MTGOfficialRetriever extends CardRetriever
 			}
 			else
 			{
-				throw new InternalError("ERROR, could not find card");
+				return false;
 			}
 		}
 		
@@ -79,7 +79,7 @@ public class MTGOfficialRetriever extends CardRetriever
 		int counter = cards.size() - 1;
 		String url = cards.get(counter).getImageUrl();
 		
-		while(url == null)
+		while(url == null || !cards.get(counter).getName().equalsIgnoreCase(name))
 		{
 			System.out.println("Card element " + counter + " failed...");
 			if(counter > 0)
