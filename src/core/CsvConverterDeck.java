@@ -108,7 +108,7 @@ public class CsvConverterDeck {
 		if (!scan.hasNext()) {
 			return;
 		}
-		//scan.nextLine();
+		
 		while (scan.hasNext()) {
 			String csv = scan.nextLine();
 			
