@@ -81,7 +81,9 @@ public class JsonUtils {
 		return statePos;
 	}
 	public static String postImage(String f){
-		
+		if(f.startsWith(".")){
+			f = f.substring(1);
+		}
 		HttpClient httpclient = new DefaultHttpClient();
 	    httpclient.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
 

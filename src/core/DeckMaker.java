@@ -102,6 +102,9 @@ public class DeckMaker {
 		
 		String response;
 		response = ReadLine(clientScanner);
+		if(response == null){
+			return;
+		}
 		if(response.equals("deck")){
 			HandleDeck(clientScanner, clientWriter);
 		}else if(response.equals("draft")){

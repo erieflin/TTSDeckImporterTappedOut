@@ -4,3 +4,5 @@ images/
 errors/
 .project
 .classpath
+/.gradle/
+*.json

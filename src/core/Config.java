@@ -1,8 +1,14 @@
 package core;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.filechooser.FileSystemView;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -44,6 +50,16 @@ public class Config {
 			JsonObject configObject = FrogUtils.JsonObjectFromFile("settings.json");
 
 			deckDir = configObject.getAsJsonPrimitive("deckDir").getAsString();
+			if(deckDir.equals("tts")){
+				String documents = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
+				Path path = Paths.get(documents,"My Games","Tabletop Simulator","Saves","Saved Objects","decks");
+				deckDir =path.toString()+File.separator;
+				File f = path.toFile();
+				if(!f.exists()){
+					f.mkdirs();
+				}
+				publicDeckDir = deckDir;
+			}
 			imageDir = configObject.getAsJsonPrimitive("imageDir").getAsString();
 			setAssetDir = configObject.getAsJsonPrimitive("setAssetDir").getAsString();
 			

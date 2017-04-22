@@ -49,6 +49,11 @@ public class DeckMetadata {
 	public void setName(String name) {
 		this.name = name;
 	}
+	public String getFriendlyDeckName(){
+		String returnStr = this.deckName.replaceAll("<", "").replaceAll(">", "").replaceAll("\\[", "").replaceAll("\\]", "")
+				.replaceAll("\\{", "").replaceAll("\\}", "").replaceAll(":", " ");
+		return returnStr;
+	}
 private String id = "dummy";
 private String deckName;
 private String cardBackUrl;

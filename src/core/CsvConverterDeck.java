@@ -16,9 +16,17 @@ import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
-import org.apache.http.util.EntityUtils;
+import javax.swing.filechooser.FileSystemView;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
+import org.jsoup.select.Elements;
 
 import com.google.gson.Gson;
 
@@ -29,7 +37,7 @@ import utils.FrogUtils;
 public class CsvConverterDeck {
 	private ArrayList<String> mainBoard = new ArrayList<String>();
 	private ArrayList<String> sideBoard = new ArrayList<String>();
-	private String commander = "";
+	private List<String> commander = new ArrayList<String>();
 	private static final String COMMANDERLABEL = "COMMANDER";
 	private static final String SIDEBOARDLABEL = "SIDEBOARD";
 	private static final String MAINBOARDLABEL = "MAINBOARD";
@@ -59,22 +67,31 @@ public class CsvConverterDeck {
 			sb.append(s + "\n");
 		}
 		sb.append(COMMANDERLABEL + "\n");
-		sb.append(commander + "\n");
+		for(String s: commander){
+			sb.append(s + "\n");		
+		}
 		sb.append("ENDDECK" + "\n");
 		sb.append("ENDDECK" + "\n");
 		sb.append("\n");
 		return sb.toString();
 	}
-
-	public void loadDeckFromText(String input, String commander, String name) {
-		this.commander = commander;
+	public void setName(String name){
 		deckMetadata.setName(name);
 		deckMetadata.setDeckName(name);
 		deckMetadata.setId(name);
+	}
+	public void loadDeckFromText(String input, String commander, String name) {
+		if(!commander.equalsIgnoreCase("auto")){
+			this.setCommander(commander);
+		}
+		if(!name.equalsIgnoreCase("auto")){
+			setName(name);
+		}
 
 		Scanner scan = new Scanner(input);
 
 		boolean main = true;
+		boolean isCommander = false;
 		while (scan.hasNext()) {
 			String csv = scan.nextLine();
 			if (!csv.equals("")) {
@@ -84,9 +101,16 @@ public class CsvConverterDeck {
 					String[] data = csv.split("\t");
 					for (int i = 0; i < Integer.parseInt(data[0]); ++i) {
 						if (main) {
-							if (!data[1].equalsIgnoreCase(commander)) {
+							
+							for(String cmdr:this.commander){
+								if (data[1].equalsIgnoreCase(cmdr)) {
+									isCommander = true;
+								}
+							}
+							if(!isCommander){
 								mainBoard.add(data[1]);
 							}
+							isCommander = false;
 						} else {
 							if (data[0].equalsIgnoreCase("side")) {
 								sideBoard.add(data[1]);
@@ -97,10 +121,17 @@ public class CsvConverterDeck {
 			}
 		}
 	}
-
+	public void setCommander(String commander){
+		this.commander = Arrays.asList(commander.split(":"));
+	}
 	public void loadDeckFromCsv(String input, String commander, String name) {
-		this.commander = commander;
-		deckMetadata.setName(name);
+		if(this.commander.size()==0){
+			this.setCommander(commander);
+		}
+		
+		if(deckMetadata.getName().equals("")){
+			setName(name);
+		}
 		Scanner scan = new Scanner(input);
 		if (!scan.hasNext()) {
 			return;
@@ -108,6 +139,7 @@ public class CsvConverterDeck {
 		scan.nextLine();
 		while (scan.hasNext()) {
 			String csv = scan.nextLine();
+			
 			String[] data = csv.split(",");
 			for (int i = 0; i < Integer.parseInt(data[1]); ++i) {
 				if (data[0].equalsIgnoreCase("side")) {
@@ -232,6 +264,7 @@ public class CsvConverterDeck {
 		System.out.println("Would you like to read from input files?");
 		String answer = in.nextLine();
 		Scanner s;
+		
 		if(answer.equalsIgnoreCase("yes")||answer.equalsIgnoreCase("y")){
 			File[] tappedOutFiles = getFilesFromDirectory("./input/tappedOut");
 			File cardList = new File("./input/cardList");
@@ -246,31 +279,36 @@ public class CsvConverterDeck {
 				
 				 int i =0;
 				 while(s.hasNextLine()){
+					 deck = new CsvConverterDeck();
 					 String line = s.nextLine();
 					 i++;
 					 if(i%3 == 1){
 						 url = line;
-						 if (!url.contains("?")) {
-								url += "?fmt=txt";
-							}
+						
 					 }
 					 if(i%3 == 2){
-						 commander = line;
+						 if(deck.commander.size()==0){
+							 commander = line;
+						 }
 					 }
 					 if(i%3 == 0){
 						 name = line;
 						 String response;
 							try {
-								response = getHTML(url);
+								String textUrl = url;
+								 if (!url.contains("?")) {
+										textUrl += "?fmt=txt";
+									}
+								response = getHTML(textUrl);
 							} catch (Exception e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 								return;
 							}
-							deck = new CsvConverterDeck();
+							deck.searchForDefaults(url);
 							deck.loadDeckFromText(response, commander, name);
 						
-							File f = new File(cardList.getPath()+"/"+name+".txt");
+							File f = new File(cardList.getPath()+"/"+deck.deckMetadata.getFriendlyDeckName()+".txt");
 							PrintWriter pw = new PrintWriter(f);
 							pw.write(deck.toString());
 							pw.flush();
@@ -278,6 +316,9 @@ public class CsvConverterDeck {
 					 }
 				 }
 			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -301,16 +342,17 @@ public class CsvConverterDeck {
 				}
 			}
 		}else{
-			
-		deck= new CsvConverterDeck();
-		
+			deck = new CsvConverterDeck();
 		System.out.println("please enter url of tapped out deck list");
 		 url = in.nextLine();
+		 deck.searchForDefaults(url);
 		if (!url.contains("?")) {
 			url += "?fmt=txt";
 		}
-		System.out.println("please enter commander name");
-		commander = in.nextLine();
+		if(deck.commander.size()==0){
+			System.out.println("please enter commander name");
+			commander = in.nextLine();
+		}
 		System.out.println("please enter deck name");
 		name = in.nextLine();
 		String response;
@@ -325,7 +367,53 @@ public class CsvConverterDeck {
 		deck.handleLocally(name);
 		}
 	}
-
+	
+	public void searchForDefaults(String url){
+		 String printable;
+			try {
+				if(!url.endsWith("/")){
+					url+="/";
+				}
+				printable = getHTML(url+"?fmt=printable");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return;
+			}
+			Document doc = Jsoup.parse(printable);
+			Elements divsMatched = doc.select("div:has(h2:contains(commander))");
+			if(divsMatched.size()==0){
+				divsMatched = doc.select("div:has(h2:contains(commanders))");
+			}
+			StringBuilder commanderBuilder = new StringBuilder("");
+			Element divWrapper = divsMatched.last();
+			for(TextNode node :divWrapper.textNodes()){
+				commanderBuilder.append(node.getWholeText());
+			}
+			String contents = commanderBuilder.toString();
+			commanderBuilder = new StringBuilder();
+			Scanner scan = new Scanner(contents);
+			while(scan.hasNextLine()){
+				String line = scan.nextLine().trim();
+				if(line.startsWith("1")){
+					line = line.substring(1).trim();
+				}
+				if(line.startsWith("x")){
+					line = line.substring(1).trim();
+				}
+				if(!line.equals("")){
+					commanderBuilder.append(line+":");
+				}
+			}
+			String result = commanderBuilder.toString();
+			if(result.endsWith(":")){
+				result = result.substring(0, result.length()-1);
+			}
+			this.setCommander(result);
+			divsMatched = doc.select("h2");
+			Element nameHeader = divsMatched.first();
+			this.setName(nameHeader.text().replaceAll("\"", ""));
+	}
 	public static String getHTML(String urlToRead) throws Exception {
 		StringBuilder result = new StringBuilder();
 		URL url = new URL(urlToRead);
