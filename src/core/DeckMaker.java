@@ -1,8 +1,12 @@
 package core;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
@@ -36,6 +40,34 @@ public class DeckMaker {
 	
 	public static void csvToInput(String csv){
 		String[] result = csv.split(",");
+	}
+	public static void createDeckFromCsvConverter(CsvConverterDeck inputDeck) {
+		// convert String into InputStream
+
+		FileWriter fw;
+		File f = new File(inputDeck.getDeckMetadata().getDeckName() + ".json");
+		File imagef = new File("images");
+		try {
+			if (!imagef.exists()) {
+				imagef.mkdirs();
+			}
+
+			fw = new FileWriter(f);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+		BufferedWriter bw = new BufferedWriter(fw);
+		FrogUtils.gson = new Gson();
+
+		if (!Config.LoadConfig()) {
+			return;
+		}
+
+		Token.LoadTokenMap();
+		Transform.LoadTransformMap();
+		DeckMaker.HandleDeck(inputDeck,bw);
 	}
 	public static void main(String[] args){
 		FrogUtils.gson = new Gson();
@@ -116,23 +148,54 @@ public class DeckMaker {
 			}catch(Exception e){}
 		}
 	}
-	
-	public static void HandleDeck(BufferedReader clientScanner, BufferedWriter clientWriter){
-		FrogUtils.Debug("Request is for deck");
+	public static void HandleDeck(CsvConverterDeck inputDeck, BufferedWriter clientWriter){
 		Deck newDeck = new Deck();
+		newDeck.deckId = inputDeck.getDeckMetadata().getId();
+		newDeck.name = inputDeck.getDeckMetadata().getName();
+		newDeck.backUrl = inputDeck.getDeckMetadata().getCardBackUrl();
+		newDeck.hiddenUrl = inputDeck.getDeckMetadata().getHiddenCardUrl();
+	
+		boolean coolifyBasics = 	inputDeck.getDeckMetadata().getCoolify().equals("true");
+		boolean artifyBasics = inputDeck.getDeckMetadata().getArtify().equals("true");
 		
+		try{
+			newDeck.compressionLevel = Double.parseDouble(inputDeck.getDeckMetadata().getCompression());
+		}catch(Exception e){}
+		FrogUtils.Debug("Received deck parameters");
+		ReadDeckList(newDeck,inputDeck);
+		HandleDeck(newDeck,clientWriter,coolifyBasics,artifyBasics);
+	}
+	public static void ReadDeckList(Deck newDeck, CsvConverterDeck inputDeck){
+		for(String line : inputDeck.getCommander()){
+			ReadCard(newDeck, 0, line);
+		}
+		for(String line : inputDeck.getMainBoard()){
+			ReadCard(newDeck, 1, line);
+		}
+		for(String line : inputDeck.getSideBoard()){
+			ReadCard(newDeck, 2, line);
+		}
+	}
+	public static void HandleDeck(BufferedReader clientScanner, BufferedWriter clientWriter){
+		Deck newDeck = new Deck();
 		newDeck.deckId = ReadLine(clientScanner);
 		newDeck.name = ReadLine(clientScanner);
 		newDeck.backUrl = ReadLine(clientScanner);
 		newDeck.hiddenUrl = ReadLine(clientScanner);
 		boolean coolifyBasics = ReadLine(clientScanner).equals("true");
 		boolean artifyBasics = ReadLine(clientScanner).equals("true");
+		DeckMetadata meta = new DeckMetadata();
+		meta.setDeckName(newDeck.name);
 		try{
 			newDeck.compressionLevel = Double.parseDouble(clientScanner.readLine());
-		}catch(Exception e){}
-		FrogUtils.Debug("Received deck parameters");
-
+		}catch(Exception e){
+		}
 		ReadDeckList(newDeck, clientScanner);
+		HandleDeck(newDeck,clientWriter,coolifyBasics,artifyBasics);
+		
+	}
+	public static void HandleDeck(Deck newDeck, BufferedWriter clientWriter, boolean coolifyBasics, boolean artifyBasics){
+		
 		FrogUtils.Debug("Deck with " + newDeck.cardList.size() + " cards and " + newDeck.transformList.size() + " transforms");
 		
 		String errorMessage = null;
@@ -182,9 +245,6 @@ public class DeckMaker {
 				e.printStackTrace();
 			}
 		}
-		try{
-			clientScanner.readLine(); //DECKEND
-		}catch(Exception e){}
 		
 		ImageUtils.FreeAllBuffers();
 		System.out.println("Done with deck " + newDeck.name);
