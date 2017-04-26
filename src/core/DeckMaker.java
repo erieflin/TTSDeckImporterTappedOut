@@ -44,8 +44,14 @@ public class DeckMaker {
 	public static void createDeckFromCsvConverter(CsvConverterDeck inputDeck) {
 		// convert String into InputStream
 
+		
+		FrogUtils.gson = new Gson();
+
+		if (!Config.LoadConfig()) {
+			return;
+		}
 		FileWriter fw;
-		File f = new File(inputDeck.getDeckMetadata().getDeckName() + ".json");
+		File f = new File(Config.deckDir+inputDeck.getDeckMetadata().getDeckName() + ".json");
 		File imagef = new File("images");
 		try {
 			if (!imagef.exists()) {
@@ -59,12 +65,6 @@ public class DeckMaker {
 			return;
 		}
 		BufferedWriter bw = new BufferedWriter(fw);
-		FrogUtils.gson = new Gson();
-
-		if (!Config.LoadConfig()) {
-			return;
-		}
-
 		Token.LoadTokenMap();
 		Transform.LoadTransformMap();
 		DeckMaker.HandleDeck(inputDeck,bw);
@@ -239,8 +239,14 @@ public class DeckMaker {
 			try {
 				String badJson = FrogUtils.gson.toJson(errorObj);
 				FrogUtils.Debug("Bad: " + badJson);
-				clientWriter.write(badJson);
-				clientWriter.flush();
+				File f = new File("./errors/");
+				if(!f.exists()){
+					f.mkdirs();
+				}
+				FileWriter fw = new FileWriter(f.getPath()+"\\"+newDeck.name+".json");
+				BufferedWriter errorWriter = new BufferedWriter(fw);
+				errorWriter.write(badJson);
+				errorWriter.flush();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
