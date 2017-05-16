@@ -2,7 +2,7 @@ package core;
 
 import utils.FrogUtils;
 
-public class Card {
+public class FrogCard {
 	
 	public String name;
 	public String transformName;
@@ -26,7 +26,7 @@ public class Card {
 	public int jsonId;
 	public int transformJsonId;
 	
-	public Card(){
+	public FrogCard(){
 		amounts = new int[3];
 	}
 	

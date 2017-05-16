@@ -2,6 +2,7 @@ bin/
 decks/
 images/
 errors/
+input/
 .project
 .classpath
 /.gradle/

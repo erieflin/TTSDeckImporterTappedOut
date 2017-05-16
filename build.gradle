@@ -35,6 +35,8 @@ dependencies {
 	compile group: 'org.apache.httpcomponents', name: 'httpclient-win', version: '4.5.3'
 	compile group: 'org.apache.httpcomponents', name: 'httpclient-cache', version: '4.5.3'
 	compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.3'
-    compile "org.jsoup:jsoup:1.9.2"
-    testCompile 'junit:junit:4.12'
+	
+	compile 'io.magicthegathering:javasdk:0.0.6'
+	compile "org.jsoup:jsoup:1.9.2"
+    	testCompile 'junit:junit:4.12'
 }

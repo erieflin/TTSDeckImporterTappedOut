@@ -150,15 +150,17 @@ public class Main {
 
 			for (File file : cardListFiles) {
 				try {
-					name = file.getName().replaceAll(".txt", "");
+					if(!file.isDirectory()){
+						name = file.getName().replaceAll(".txt", "");
 
-					s = new Scanner(file);
+						s = new Scanner(file);
 
-					StringBuilder sb = new StringBuilder();
-					while (s.hasNextLine()) {
-						sb.append(s.nextLine() + "\n");
+						StringBuilder sb = new StringBuilder();
+						while (s.hasNextLine()) {
+							sb.append(s.nextLine() + "\n");
+						}
+						CsvConverterDeck.handleString(sb.toString(), name);
 					}
-					CsvConverterDeck.handleString(sb.toString(), name);
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -187,7 +189,7 @@ public class Main {
 				return;
 			}
 			deck.loadDeckFromText(response, commander, name);
-			
+			DeckMaker.createDeckFromCsvConverter(deck);	
 		}
 	}
 
@@ -235,7 +237,9 @@ public class Main {
 		deck.setCommander(result);
 		divsMatched = doc.select("h2");
 		Element nameHeader = divsMatched.first();
-		deck.setName(nameHeader.text().replaceAll("\"", ""));
+		
+		deck.setName(nameHeader.text().trim().replaceAll("[\\\\/:*?\"<>|]", ""));
+		
 	}
 
 	public static String getHTML(String urlToRead) throws Exception {

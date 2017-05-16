@@ -31,7 +31,7 @@ public class DeckMaker {
 
 	
 	public static boolean running;
-	public static ArrayList<Card> TokenList = new ArrayList<Card>();
+	public static ArrayList<FrogCard> TokenList = new ArrayList<FrogCard>();
 	public static ServerSocket serverSocket;
 	
 	public static Pattern cardNameRegex = Pattern.compile("([0-9]*)x?\\s*([^<\\[{]*)");
@@ -225,7 +225,7 @@ public class DeckMaker {
 				JsonUtils.BuildJSONFile(newDeck);
 			}else{
 				badCardArray = new JsonArray();
-				for(Card card : newDeck.unknownCards){
+				for(FrogCard card : newDeck.unknownCards){
 					badCardArray.add(new JsonPrimitive(card.line));
 				}
 				errorMessage = badCardArray.size() + " unrecognized cards!";
@@ -316,12 +316,17 @@ public class DeckMaker {
 				language = FrogUtils.StringBetween(line, "{", "}");
 			}
 			
+			if(set == null)
+			{
+				System.out.println("TEMP LOOK HERE");
+			}
+			
 			cardName = FrogUtils.CleanCardName(cardName);
 			
-			String cardKey = Card.getCardKey(cardName, set, printing, language);
-			Card card = newDeck.getCard(cardKey);
+			String cardKey = FrogCard.getCardKey(cardName, set, printing, language);
+			FrogCard card = newDeck.getCard(cardKey);
 			if(card == null){
-				card = new Card();
+				card = new FrogCard();
 				card.name = cardName;
 				card.cardKey = cardKey;
 				card.language = language;
@@ -351,7 +356,7 @@ public class DeckMaker {
 			ReadDraftList(clientScanner, draft);
 
 			System.out.println("There are " + draft.cardsByRarity.get(0).size() + " mythics");
-			for(Card c : draft.cardsByRarity.get(0)){
+			for(FrogCard c : draft.cardsByRarity.get(0)){
 				System.out.println(c.getDisplayName());
 			}
 			
@@ -424,18 +429,18 @@ public class DeckMaker {
 		draft.curRarity = 4; //basic land
 		String[] basics = {"island","mountain","forest","plains","swamp"};
 		for(String name : basics){
-			Card card = new Card();
+			FrogCard card = new FrogCard();
 			card.name = name;
 			card.set = "uh";
-			card.cardKey = Card.getCardKey(name, "uh", null, null);
+			card.cardKey = FrogCard.getCardKey(name, "uh", null, null);
 			
 			draft.add(card);
 			draft.basics.add(card);
 		}
-		Card wastes = new Card();
+		FrogCard wastes = new FrogCard();
 		wastes.name = "wastes";
 		wastes.set = "ogw";
-		wastes.cardKey = Card.getCardKey(wastes.name, wastes.set, null, null);
+		wastes.cardKey = FrogCard.getCardKey(wastes.name, wastes.set, null, null);
 		draft.add(wastes);
 		draft.basics.add(wastes);
 	}

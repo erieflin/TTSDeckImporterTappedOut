@@ -27,7 +27,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import cardbuddies.Token;
-import core.Card;
+import core.FrogCard;
 import core.Config;
 import core.Deck;
 import core.DraftDeck;
@@ -182,7 +182,7 @@ public class JsonUtils {
 		JsonArray commanderStateIDs = new JsonArray();
 		JsonArray commanderContents = new JsonArray();
 		ArrayList<Integer> commanderStateDeckIDs = new ArrayList<Integer>();
-		for(Card card : deck.cardList){
+		for(FrogCard card : deck.cardList){
 			if(card.amounts[curStateIndex] == 0)continue;
 			int deckID = card.jsonId/100;
 			if(!commanderStateDeckIDs.contains(deckID)) commanderStateDeckIDs.add(deckID);
@@ -204,7 +204,7 @@ public class JsonUtils {
 			if(!tokenStateDeckIDs.contains(deckID)) tokenStateDeckIDs.add(deckID);
 			tokenStateIds.add(new JsonPrimitive(token.jsonId));
 		}
-		for(Card card : deck.transformList){
+		for(FrogCard card : deck.transformList){
 			int deckID = card.transformJsonId/100;
 			if(!tokenStateDeckIDs.contains(deckID)) tokenStateDeckIDs.add(deckID);
 			tokenStateIds.add(new JsonPrimitive(card.transformJsonId));
@@ -220,7 +220,7 @@ public class JsonUtils {
 		JsonArray mainStateIDs = new JsonArray();
 		JsonArray mainContents = new JsonArray();
 		ArrayList<Integer> mainStateDeckIDs = new ArrayList<Integer>();
-		for(Card card : deck.cardList){
+		for(FrogCard card : deck.cardList){
 			if(card.amounts[curStateIndex] == 0)continue;
 			int deckID = card.jsonId/100;
 			if(!mainStateDeckIDs.contains(deckID)) mainStateDeckIDs.add(deckID);
@@ -240,7 +240,7 @@ public class JsonUtils {
 		JsonArray sideStateIDs = new JsonArray();
 		JsonArray sideContents = new JsonArray();
 		ArrayList<Integer> sideStateDeckIDs = new ArrayList<Integer>();
-		for(Card card : deck.cardList){
+		for(FrogCard card : deck.cardList){
 			if(card.amounts[curStateIndex] == 0)continue;
 			int deckID = card.jsonId/100;
 			if(!sideStateDeckIDs.contains(deckID)){
@@ -251,7 +251,7 @@ public class JsonUtils {
 				sideContents.add(NewCardObject(card.jsonId, card.getDisplayName()));
 			}
 		}
-		for(Card card : deck.transformList){
+		for(FrogCard card : deck.transformList){
 			if(card.amounts[curStateIndex] == 0)continue;
 			int deckID = card.jsonId/100;
 			if(!sideStateDeckIDs.contains(deckID)){
@@ -305,7 +305,7 @@ public class JsonUtils {
 			if(!tokenStateDeckIDs.contains(deckID)) tokenStateDeckIDs.add(deckID);
 			tokenStateIds.add(new JsonPrimitive(token.jsonId));
 		}
-		for(Card card : draft.transformList){
+		for(FrogCard card : draft.transformList){
 			int deckID = card.transformJsonId/100;
 			if(!tokenStateDeckIDs.contains(deckID)) tokenStateDeckIDs.add(deckID);
 			tokenStateIds.add(new JsonPrimitive(card.transformJsonId));
@@ -320,7 +320,7 @@ public class JsonUtils {
 		JsonArray basicStateIds = new JsonArray();
 		JsonArray basicContents = new JsonArray();
 		ArrayList<Integer> basicStateDeckIDs = new ArrayList<Integer>();
-		for(Card card : draft.basics){
+		for(FrogCard card : draft.basics){
 			int deckID = card.jsonId/100;
 			if(!basicStateDeckIDs.contains(deckID)){
 				basicStateDeckIDs.add(deckID);
@@ -338,7 +338,7 @@ public class JsonUtils {
 		//pack object states---------------------------------------------
 		boolean hasMythic = draft.cardsByRarity.get(0).size() > 0;
 		if(hasMythic){
-			for(Card card :	draft.cardsByRarity.get(1)){
+			for(FrogCard card :	draft.cardsByRarity.get(1)){
 				draft.cardsByRarity.get(0).add(card);
 				draft.cardsByRarity.get(0).add(card);
 			}
@@ -350,10 +350,10 @@ public class JsonUtils {
 			HashSet<Integer> existingPackIds = new HashSet<Integer>();
 			for(int rarityi = 0; rarityi < DraftDeck.RARITIES.length; rarityi++){
 				if(hasMythic && rarityi == 1) continue;
-				ArrayList<Card> byRarity = draft.cardsByRarity.get(rarityi);
+				ArrayList<FrogCard> byRarity = draft.cardsByRarity.get(rarityi);
 				if(byRarity.size() == 0)continue;
 				for(int cardi = 0; cardi < draft.boosterAmts[rarityi]; cardi++){
-					Card card = null;
+					FrogCard card = null;
 					do{
 						card = byRarity.get((int)(byRarity.size() * Math.random()));
 					}while(existingPackIds.contains(card.jsonId) && Math.random() > 0.25);

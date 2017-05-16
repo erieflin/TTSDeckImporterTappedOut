@@ -23,11 +23,11 @@ public class Deck {
 	public String hiddenUrl;
 	public BufferedImage hiddenImage;
 	
-	public ArrayList<Card> cardList = new ArrayList<Card>(100);
-	public ArrayList<Card> transformList = new ArrayList<Card>(100);
+	public ArrayList<FrogCard> cardList = new ArrayList<FrogCard>(100);
+	public ArrayList<FrogCard> transformList = new ArrayList<FrogCard>(100);
 	public HashSet<Token> tokens = new HashSet<Token>();
 	
-	public ArrayList<Card> unknownCards = new ArrayList<Card>(100);
+	public ArrayList<FrogCard> unknownCards = new ArrayList<FrogCard>(100);
 
 	public BufferedImage[] buffers;
 	public String[] deckFileNames;
@@ -37,8 +37,8 @@ public class Deck {
 		backUrl = Config.defaultBackImage;
 	}
 	
-	public Card getCard(String cardKey) {
-		for(Card card : cardList){
+	public FrogCard getCard(String cardKey) {
+		for(FrogCard card : cardList){
 			if(card.cardKey.equals(cardKey)){
 				return card;
 			}
@@ -53,11 +53,11 @@ public class Deck {
 		}
 	}
 	
-	public void add(Card card){
+	public void add(FrogCard card){
 		if(!cardList.contains(card)){
 			card.transformName = Transform.nameToTransformMap.get(card.name);
 			if(card.transformName != null){
-				card.transformCardKey = Card.getCardKey(card.transformName, card.set, card.printing, card.language);
+				card.transformCardKey = FrogCard.getCardKey(card.transformName, card.set, card.printing, card.language);
 				transformList.add(card);
 			}
 			cardList.add(card);
@@ -76,7 +76,7 @@ public class Deck {
 		fullArtLands = Config.fullArtMap;
 		
 		for (int i = cardList.size() - 1; i >= 0; i-- ) {
-			Card card = cardList.get(i);
+			FrogCard card = cardList.get(i);
 
 			if(FrogUtils.IsNullOrEmpty(card.set) && FrogUtils.IsNullOrEmpty(card.language) && FrogUtils.IsNullOrEmpty(card.printing)){
 				if(fullArtLands.containsKey(card.name)) {
@@ -97,10 +97,10 @@ public class Deck {
 		
 							String set = pairList.get(k).getX();
 							String printing = pairList.get(k).getY();
-							String cardKey = Card.getCardKey(card.name, set, printing, null);
-							Card coolBasic = getCard(cardKey);
+							String cardKey = FrogCard.getCardKey(card.name, set, printing, null);
+							FrogCard coolBasic = getCard(cardKey);
 							if (coolBasic == null) {
-								coolBasic = new Card();
+								coolBasic = new FrogCard();
 								coolBasic.name = card.name;
 								coolBasic.cardKey = cardKey;
 								coolBasic.set = set;
@@ -121,7 +121,7 @@ public class Deck {
 		String[] basics = {"island","forest","mountain","swamp","plains"};
 		String[] coolSets = {"uh","guru","al","zen"};
 		for(int i = cardList.size()-1; i >= 0; i--){
-			Card card = cardList.get(i);
+			FrogCard card = cardList.get(i);
 			if((card.set == null || card.set.isEmpty()) && (card.language == null || card.language.isEmpty())
 					&& (card.printing == null || card.printing.isEmpty())) {
 				for(String basicName : basics){
@@ -136,10 +136,10 @@ public class Deck {
 						for(int j = 0; j < newAmts.length; j++){
 							for(int k = 0; k < newAmts[j].length; k++){
 								if(newAmts[j][k] == 0)continue;
-								String cardKey = Card.getCardKey(basicName, coolSets[k], null, null);
-								Card coolBasic = getCard(cardKey);
+								String cardKey = FrogCard.getCardKey(basicName, coolSets[k], null, null);
+								FrogCard coolBasic = getCard(cardKey);
 								if(coolBasic == null){
-									coolBasic = new Card();
+									coolBasic = new FrogCard();
 									coolBasic.name = basicName;
 									coolBasic.cardKey = cardKey;
 									coolBasic.set = coolSets[k];

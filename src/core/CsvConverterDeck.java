@@ -117,6 +117,17 @@ public class CsvConverterDeck {
 					main = false;
 				} else {
 					String[] data = csv.split("\t");
+					if(data.length == 1){
+						data = csv.split(" ");
+						
+						String remainder = "";
+						for(int i =1; i < data.length; ++i){
+							remainder+=data[i];
+						}
+						data = new String[2];
+						data[0]=data[0];
+						data[1]=remainder;
+					}
 					for (int i = 0; i < Integer.parseInt(data[0]); ++i) {
 						if (main) {
 
@@ -200,29 +211,59 @@ public class CsvConverterDeck {
 	}
 
 	public void loadDeckFromCsv(String input, String commander, String name) {
-		if (this.getCommander().size() == 0) {
-			this.setCommander(commander);
-		}
-
-		if (getDeckMetadata().getName().equals("")) {
-			setName(name);
-		}
+		this.commander = commander;
+		deckMetadata.setName(name);
+		deckMetadata.setDeckName(name);
+		deckMetadata.setId(name);
+		
 		Scanner scan = new Scanner(input);
 		if (!scan.hasNext()) {
 			return;
 		}
-		scan.nextLine();
+		
 		while (scan.hasNext()) {
 			String csv = scan.nextLine();
-
-			String[] data = csv.split(",");
-			for (int i = 0; i < Integer.parseInt(data[1]); ++i) {
-				if (data[0].equalsIgnoreCase("side")) {
-					sideBoard.add(data[3]);
+			
+			final String[] headerList = new String[] {"Board", "Qty", "Name", "Printing", "Foil", "Alter", "Signed", "Condition", "Language"};
+			
+			if(csv.trim().equalsIgnoreCase("Board,Qty,Name,Printing,Foil,Alter,Signed,Condition,Languange"))
+			{
+				// Header line, skip.  Can be used to find order of columns if necessary
+			}
+			else
+			{
+				//Fix commas in names
+				final String replacer = "~";
+				csv = csv.replaceAll("\"(.*),(.*)\"", "$1" + replacer + "$2");
+				
+				String[] data = csv.split(",");
+				
+				//Replace temporary character with comma
+				for(int i = 0; i < data.length; i++)
+				{
+					data[i] = data[i].replace(replacer, ",");
 				}
-				if (data[0].equalsIgnoreCase("main")) {
-					if (!data[3].equalsIgnoreCase(commander)) {
-						mainBoard.add(data[3]);
+				
+				if(csv.contains(replacer))
+				{
+					System.out.println("Used replacer, temp version: " + csv);
+					System.out.println("\tOriginal version: " + data[2]);
+				}
+				
+				for (int i = 0; i < Integer.parseInt(data[1]); ++i) {
+					
+					String formattedName = data[2];
+					
+					if(data.length >= 4)
+						formattedName += " [" + data[3] + "]";
+					
+					if (data[0].equalsIgnoreCase("side")) {
+						sideBoard.add(formattedName);
+					}
+					if (data[0].equalsIgnoreCase("main")) {
+						if (data.length >= 3 && !data[2].equalsIgnoreCase(commander)) {
+							mainBoard.add(formattedName);
+						}
 					}
 				}
 			}
