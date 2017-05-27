@@ -119,7 +119,7 @@ public class Main {
 							try {
 								String textUrl = url;
 								if (!url.contains("?")) {
-									textUrl += "?fmt=txt";
+									textUrl += "?fmt=csv";
 								}
 								response = getHTML(textUrl);
 							} catch (Exception e) {
@@ -128,7 +128,7 @@ public class Main {
 								return;
 							}
 							searchForDefaults(url, deck);
-							deck.loadDeckFromText(response, commander, name);
+							deck.loadDeckFromCsv(response, commander, name);
 							DeckMaker.createDeckFromCsvConverter(deck);
 							File f = new File(
 									cardList.getPath() + "/" + deck.getDeckMetadata().getFriendlyDeckName() + ".txt");
@@ -151,16 +151,17 @@ public class Main {
 			for (File file : cardListFiles) {
 				try {
 					if(!file.isDirectory()){
-						name = file.getName().replaceAll(".txt", "");
+						
+					
+					name = file.getName().replaceAll(".csv", "");
+					
+					s = new Scanner(file);
 
-						s = new Scanner(file);
-
-						StringBuilder sb = new StringBuilder();
-						while (s.hasNextLine()) {
-							sb.append(s.nextLine() + "\n");
-						}
-						CsvConverterDeck.handleString(sb.toString(), name);
+					StringBuilder sb = new StringBuilder();
+					while (s.hasNextLine()) {
+						sb.append(s.nextLine() + "\n");
 					}
+					CsvConverterDeck.handleString(sb.toString(), name);
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -172,7 +173,7 @@ public class Main {
 			url = in.nextLine();
 			searchForDefaults(url, deck);
 			if (!url.contains("?")) {
-				url += "?fmt=txt";
+				url += "?fmt=csv";
 			}
 			if (deck.getCommander().size() == 0) {
 				System.out.println("please enter commander name");
@@ -188,8 +189,8 @@ public class Main {
 				e.printStackTrace();
 				return;
 			}
-			deck.loadDeckFromText(response, commander, name);
-			DeckMaker.createDeckFromCsvConverter(deck);	
+			deck.loadDeckFromCsv(response, commander, name);
+			
 		}
 	}
 
@@ -237,9 +238,7 @@ public class Main {
 		deck.setCommander(result);
 		divsMatched = doc.select("h2");
 		Element nameHeader = divsMatched.first();
-		
-		deck.setName(nameHeader.text().trim().replaceAll("[\\\\/:*?\"<>|]", ""));
-		
+		deck.setName(nameHeader.text().replaceAll("\"", ""));
 	}
 
 	public static String getHTML(String urlToRead) throws Exception {

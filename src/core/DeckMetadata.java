@@ -51,7 +51,7 @@ public class DeckMetadata {
 	}
 	public String getFriendlyDeckName(){
 		String returnStr = this.deckName.replaceAll("<", "").replaceAll(">", "").replaceAll("\\[", "").replaceAll("\\]", "")
-				.replaceAll("\\{", "").replaceAll("\\}", "").replaceAll(":", " ");
+				.replaceAll("\\{", "").replaceAll("\\}", "").replaceAll(":", " ").replaceAll("\\*", "").replaceAll(" +", " ");
 		return returnStr;
 	}
 private String id = "dummy";
