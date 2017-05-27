@@ -232,7 +232,7 @@ public class CsvConverterDeck {
 					sideBoard.add(data[3]);
 				}
 				if (data[0].equalsIgnoreCase("main")) {
-					if (!data[3].equalsIgnoreCase(commander)) {
+					if (!commander.contains(data[3])) {
 						mainBoard.add(data[3]);
 					}
 				}
