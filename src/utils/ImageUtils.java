@@ -33,10 +33,10 @@ public class ImageUtils {
 	public static long resetTime = 0;
 	
 	static{
-		//cardRetrievers.add(new MTGOfficialRetriever());
 		cardRetrievers.add(new MagicCardsInfoRetriever());
 		cardRetrievers.add(new MythicSpoilerRetriever());
 		cardRetrievers.add(new GathererRetriever());
+		cardRetrievers.add(new MTGOfficialRetriever());
 	}
 	
 	public static BufferedImage GetBuffer(int width, int height){
@@ -194,17 +194,17 @@ public class ImageUtils {
 		
 		boolean draftAssetsExist = deck instanceof DraftDeck;
 		
-//		int cardOffsetX = 10;
-//		int cardOffsetY = 10;
+		int cardOffsetX = 10;
+		int cardOffsetY = 10;
 		
-		int cardOffsetX = 0;
-		int cardOffsetY = 0;
+//		int cardOffsetX = 0;
+//		int cardOffsetY = 0;
 		
-//		int cardWidth = 312 + 2*cardOffsetX;
-//		int cardHeight = 445 + 2*cardOffsetY;
+		int cardWidth = 312 + 2*cardOffsetX;
+		int cardHeight = 445 + 2*cardOffsetY;
 		
-		int cardWidth = 223 + 2*cardOffsetX;
-		int cardHeight = 310 + 2*cardOffsetY;
+//		int cardWidth = 223 + 2*cardOffsetX;
+//		int cardHeight = 310 + 2*cardOffsetY;
 		
 		deck.buffers = new BufferedImage[deckAmt];
 		deck.deckFileNames = new String[deckAmt];
