@@ -33,7 +33,7 @@ public class ImageUtils {
 	public static long resetTime = 0;
 	
 	static{
-		cardRetrievers.add(new MTGOfficialRetriever());
+		//cardRetrievers.add(new MTGOfficialRetriever());
 		cardRetrievers.add(new MagicCardsInfoRetriever());
 		cardRetrievers.add(new MythicSpoilerRetriever());
 		cardRetrievers.add(new GathererRetriever());

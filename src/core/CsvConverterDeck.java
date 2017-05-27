@@ -228,8 +228,25 @@ public class CsvConverterDeck {
 		scan.nextLine();
 		while (scan.hasNext()) {
 			String csv = scan.nextLine();
-
+			
+			//Fix commas in names
+			final String replacer = "~";
+			csv = csv.replaceAll("\"(.*),(.*)\"", "$1" + replacer + "$2");
+			
 			String[] data = csv.split(",");
+			
+			//Replace temporary character with comma
+			for(int i = 0; i < data.length; i++)
+			{
+				data[i] = data[i].replace(replacer, ",");
+			}
+			
+			if(csv.contains(replacer))				
+			{				
+				System.out.println("Used replacer, temp version: " + csv);				
+				System.out.println("\tOriginal version: " + data[2]);				
+			}
+			
 			for (int i = 0; i < Integer.parseInt(data[1]); ++i) {
 				if (data[0].equalsIgnoreCase("side")) {
 					sideBoard.add(data[2]);
