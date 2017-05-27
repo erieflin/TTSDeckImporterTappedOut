@@ -95,6 +95,8 @@ public class CsvConverterDeck {
 	public void setName(String name) {
 		name = name.replaceAll("\\\\", " ");
 		name = name.replaceAll("/", " ");
+		name = name.replaceAll(":", " ");
+		name = name.replaceAll("\\*", " ");
 		name = name.replaceAll(" +", " ");
 		getDeckMetadata().setName(name);
 		getDeckMetadata().setDeckName(name);
@@ -214,11 +216,11 @@ public class CsvConverterDeck {
 	}
 
 	public void loadDeckFromCsv(String input, String commander, String name) {
-		if (this.getCommander().size() == 0) {
+		if (this.getCommander().size() == 0 && !commander.equals("auto")) {
 			this.setCommander(commander);
 		}
 
-		if (getDeckMetadata().getName().equals("")) {
+		if (getDeckMetadata().getName().equals("") && !name.equals("auto")) {
 			setName(name);
 		}
 		Scanner scan = new Scanner(input);
@@ -252,7 +254,7 @@ public class CsvConverterDeck {
 					sideBoard.add(data[2]);
 				}
 				if (data[0].equalsIgnoreCase("main")) {
-					if (!commander.contains(data[2])) {
+					if (!this.getCommander().contains(data[2])) {
 						mainBoard.add(data[2]);
 					}
 				}
