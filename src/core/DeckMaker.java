@@ -51,7 +51,7 @@ public class DeckMaker {
 			return;
 		}
 		FileWriter fw;
-		File f = new File(Config.deckDir+inputDeck.getDeckMetadata().getDeckName() + ".json");
+		File f = new File(Config.deckDir+inputDeck.getDeckMetadata().getDeckName() + ".json");	
 		File imagef = new File("images");
 		try {
 			if (!imagef.exists()) {

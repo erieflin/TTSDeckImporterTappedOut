@@ -93,6 +93,9 @@ public class CsvConverterDeck {
 	}
 
 	public void setName(String name) {
+		name = name.replaceAll("\\\\", " ");
+		name = name.replaceAll("/", " ");
+		name = name.replaceAll(" +", " ");
 		getDeckMetadata().setName(name);
 		getDeckMetadata().setDeckName(name);
 		getDeckMetadata().setId(name);
