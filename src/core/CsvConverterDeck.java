@@ -229,11 +229,11 @@ public class CsvConverterDeck {
 			String[] data = csv.split(",");
 			for (int i = 0; i < Integer.parseInt(data[1]); ++i) {
 				if (data[0].equalsIgnoreCase("side")) {
-					sideBoard.add(data[3]);
+					sideBoard.add(data[2]);
 				}
 				if (data[0].equalsIgnoreCase("main")) {
-					if (!commander.contains(data[3])) {
-						mainBoard.add(data[3]);
+					if (!commander.contains(data[2])) {
+						mainBoard.add(data[2]);
 					}
 				}
 			}
