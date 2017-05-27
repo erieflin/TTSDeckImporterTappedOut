@@ -162,6 +162,7 @@ public class Main {
 						sb.append(s.nextLine() + "\n");
 					}
 					CsvConverterDeck.handleString(sb.toString(), name);
+					}
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
