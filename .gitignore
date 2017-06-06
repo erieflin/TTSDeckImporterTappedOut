@@ -7,3 +7,8 @@ input/
 .classpath
 /.gradle/
 *.json
+
+.idea/
+classes/
+*.iml
+build/
