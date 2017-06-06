@@ -191,7 +191,7 @@ public class Main {
 				return;
 			}
 			deck.loadDeckFromCsv(response, commander, name);
-			
+			DeckMaker.createDeckFromCsvConverter(deck);
 		}
 	}
 
