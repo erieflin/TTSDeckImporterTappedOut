@@ -36,6 +36,7 @@ import utils.FrogUtils;
 
 public class CsvConverterDeck {
 	private ArrayList<String> mainBoard = new ArrayList<String>();
+	private String commanderStr = "";
 	public ArrayList<String> getMainBoard() {
 		return mainBoard;
 	}
@@ -97,6 +98,7 @@ public class CsvConverterDeck {
 		name = name.replaceAll("/", " ");
 		name = name.replaceAll(":", " ");
 		name = name.replaceAll("\\*", " ");
+		name = name.replaceAll("\\|", " ");
 		name = name.replaceAll(" +", " ");
 		getDeckMetadata().setName(name);
 		getDeckMetadata().setDeckName(name);
@@ -157,6 +159,7 @@ public class CsvConverterDeck {
 	}
 
 	public void setCommander(String commander) {
+		this.setCommanderStr(commander);
 		this.commander = Arrays.asList(commander.split(":"));
 	}
 
@@ -277,5 +280,13 @@ public class CsvConverterDeck {
 
 	public void setDeckMetadata(DeckMetadata deckMetadata) {
 		this.deckMetadata = deckMetadata;
+	}
+
+	public String getCommanderStr() {
+		return commanderStr;
+	}
+
+	public void setCommanderStr(String commanderStr) {
+		this.commanderStr = commanderStr;
 	}
 }
