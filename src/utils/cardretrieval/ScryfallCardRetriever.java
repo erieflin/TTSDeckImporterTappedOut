@@ -31,7 +31,19 @@ public class ScryfallCardRetriever extends CardRetriever {
     	return getCardByName(name,"");
     }
     public static JsonObject getCardByName(String name, String set) throws UnsupportedEncodingException{
-    	String query = "?exact="+ name.replaceAll("\\s+","+");;
+
+    	String tempName = name.replaceAll("\\s+","+");
+    	if(name.contains("/"))
+    	{
+    		Pattern pattern = Pattern.compile("(.+\\()(.+\\/.+)(\\))");
+        	Matcher matcher = pattern.matcher(tempName);
+        	if(matcher.find())
+        	{
+        		tempName = matcher.group(2).replaceAll("\\/", "+\\/\\/+");
+        	}
+    	}
+    	
+    	String query = "?exact="+ tempName;
     	
     	String url = Constants.SCRYFALL_CARD_NAMED+query;
     	JsonObject result =  ScryfallUtils.getJsonFromURL(url);
@@ -92,9 +104,9 @@ public class ScryfallCardRetriever extends CardRetriever {
 			if(new File(imageFileName).exists()) return true;
 			if(HandleHardCard(cardName, imageFileName)) return true;
 			if(HandleHardCard(cleanCardName, imageFileName)) return true;
-		
+
 			JsonObject jsonCard = getCardByName(cardName,card.set);
-			if(card.transformName != null || jsonCard.has(Constants.CARD_FACES_ID)){
+			if(!jsonCard.get("layout").getAsString().equals("split") && (card.transformName != null || jsonCard.has(Constants.CARD_FACES_ID))){
 				JsonArray faces = jsonCard.get(Constants.CARD_FACES_ID).getAsJsonArray();
 				
 				if(!isBack){
