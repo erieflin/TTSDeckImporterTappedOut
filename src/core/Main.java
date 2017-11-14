@@ -111,10 +111,21 @@ public class Main {
 		addUrl.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DeckLocation loc = new DeckLocation(url.getText(),commander.getText(),name.getText());
+				CsvConverterDeck deck = new CsvConverterDeck();
+				
+				deck.setCommander(commander.getText());
+				deck.setName(name.getText());
+				String urlStr = url.getText();
+				if(!urlStr.contains("http://tappedout.net")){
+					urlStr =  "http://tappedout.net/mtg-decks/" + urlStr;
+				}
+				searchForDefaults(urlStr,deck);
+				DeckLocation loc = new DeckLocation(url.getText(),deck.getCommanderStr(),deck.getDeckMetadata().getDeckName());
+				
 				if(!decksToImport.contains(loc)){
 					decksToImport.add(loc);
 				}
+				updateListBox();
 			}
 		});
 
