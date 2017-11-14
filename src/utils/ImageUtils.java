@@ -202,8 +202,8 @@ public class ImageUtils {
 //		int cardOffsetX = 0;
 //		int cardOffsetY = 0;
 		
-		int cardWidth = 312 + 2*cardOffsetX;
-		int cardHeight = 445 + 2*cardOffsetY;
+		int cardWidth = 745 + 2*cardOffsetX;
+		int cardHeight = 1040 + 2*cardOffsetY;
 		
 //		int cardWidth = 223 + 2*cardOffsetX;
 //		int cardHeight = 310 + 2*cardOffsetY;

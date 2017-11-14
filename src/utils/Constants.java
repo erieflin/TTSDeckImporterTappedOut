@@ -18,7 +18,7 @@ public class Constants {
 
     public static final String PRINTING_ID = "printings";
     public static final String IMAGE_URI_ID = "image_uris";
-    public static final String NORMAL_SIZE = "normal";
+    public static final String SIZE_ID = "png";
     public static final String CARD_FACES_ID = "card_faces";
     public static final String NAME_ID = "name";
     

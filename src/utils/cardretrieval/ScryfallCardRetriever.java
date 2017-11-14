@@ -107,7 +107,7 @@ public class ScryfallCardRetriever extends CardRetriever {
 				}
 			}
 		    JsonObject images = jsonCard.get(Constants.IMAGE_URI_ID).getAsJsonObject(); 
-			String url = images.get(Constants.NORMAL_SIZE).getAsString();
+			String url = images.get(Constants.SIZE_ID).getAsString();
 			return ImageUtils.SaveImage(url, imageFileName, 1.0);
 		}catch(Exception e){
 			e.printStackTrace();
