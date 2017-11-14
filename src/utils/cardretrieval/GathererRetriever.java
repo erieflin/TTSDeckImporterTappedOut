@@ -35,7 +35,7 @@ public class GathererRetriever extends CardRetriever {
 			}catch(Exception e){}
 		}
 		if(f.exists()) return true;
-		
+		LoadFailed(card);
 		return false;
 	}
 

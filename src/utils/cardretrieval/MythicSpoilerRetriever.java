@@ -61,6 +61,8 @@ public class MythicSpoilerRetriever extends CardRetriever{
 			return true;
 		}
 		System.out.println("Failed at " + imgname);
+		LoadFailed(card);
 		return false;
+		
 	}
 }

@@ -24,6 +24,7 @@ import utils.cardretrieval.GathererRetriever;
 import utils.cardretrieval.MTGOfficialRetriever;
 import utils.cardretrieval.MagicCardsInfoRetriever;
 import utils.cardretrieval.MythicSpoilerRetriever;
+import utils.cardretrieval.ScryfallCardRetriever;
 
 public class ImageUtils {
 	public static ArrayList<BufferedImage> freeBuffers = new ArrayList<BufferedImage>();
@@ -33,10 +34,11 @@ public class ImageUtils {
 	public static long resetTime = 0;
 	
 	static{
-		cardRetrievers.add(new MagicCardsInfoRetriever());
-		cardRetrievers.add(new MythicSpoilerRetriever());
-		cardRetrievers.add(new GathererRetriever());
-		cardRetrievers.add(new MTGOfficialRetriever());
+		cardRetrievers.add(new ScryfallCardRetriever());
+//		cardRetrievers.add(new MagicCardsInfoRetriever());
+//		cardRetrievers.add(new MythicSpoilerRetriever());
+//		cardRetrievers.add(new GathererRetriever());
+//		cardRetrievers.add(new MTGOfficialRetriever());
 	}
 	
 	public static BufferedImage GetBuffer(int width, int height){

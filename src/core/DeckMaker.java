@@ -247,6 +247,7 @@ public class DeckMaker {
 				BufferedWriter errorWriter = new BufferedWriter(fw);
 				errorWriter.write(badJson);
 				errorWriter.flush();
+				System.out.println(badJson);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

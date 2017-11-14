@@ -49,7 +49,7 @@ public class Config {
 		try{
 			JsonObject configObject = FrogUtils.JsonObjectFromFile("settings.json");
 
-			deckDir = configObject.getAsJsonPrimitive("deckDir").getAsString();
+ 			deckDir = configObject.getAsJsonPrimitive("deckDir").getAsString();
 			if(deckDir.equals("tts")){
 				String documents = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
 				Path path = Paths.get(documents,"My Games","Tabletop Simulator","Saves","Saved Objects","decks");

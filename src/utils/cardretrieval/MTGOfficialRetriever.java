@@ -70,7 +70,9 @@ public class MTGOfficialRetriever extends CardRetriever
 			}
 			else
 			{
+				LoadFailed(card);
 				return false;
+				
 			}
 		}
 		
@@ -91,6 +93,7 @@ public class MTGOfficialRetriever extends CardRetriever
 			else
 			{
 				System.out.println("Ran out of cards to try");
+				LoadFailed(card);
 				return false;
 			}
 		}
