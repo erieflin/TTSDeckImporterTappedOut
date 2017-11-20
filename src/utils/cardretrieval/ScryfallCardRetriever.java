@@ -102,9 +102,9 @@ public class ScryfallCardRetriever extends CardRetriever {
 			else card.imageFileName = imageFileName;
 			System.out.println(imageFileName);
 			if(new File(imageFileName).exists()) return true;
-			if(HandleHardCard(cardName, imageFileName)) return true;
-			if(HandleHardCard(cleanCardName, imageFileName)) return true;
-
+			//if(HandleHardCard(cardName, imageFileName)) return true;
+			//if(HandleHardCard(cleanCardName, imageFileName)) return true;
+		
 			JsonObject jsonCard = getCardByName(cardName,card.set);
 			if(!jsonCard.get("layout").getAsString().equals("split") && (card.transformName != null || jsonCard.has(Constants.CARD_FACES_ID))){
 				JsonArray faces = jsonCard.get(Constants.CARD_FACES_ID).getAsJsonArray();

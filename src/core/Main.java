@@ -120,7 +120,7 @@ public class Main {
 					urlStr =  "http://tappedout.net/mtg-decks/" + urlStr;
 				}
 				searchForDefaults(urlStr,deck);
-				DeckLocation loc = new DeckLocation(url.getText(),deck.getCommanderStr(),deck.getDeckMetadata().getDeckName());
+				DeckLocation loc = new DeckLocation(urlStr,deck.getCommanderStr(),deck.getDeckMetadata().getDeckName());
 				
 				if(!decksToImport.contains(loc)){
 					decksToImport.add(loc);
