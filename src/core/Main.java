@@ -33,14 +33,31 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JTabbedPane;
+import java.awt.FlowLayout;
+import javax.swing.BoxLayout;
+import java.awt.ComponentOrientation;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import net.miginfocom.swing.MigLayout;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JButton;
+import javax.swing.ListModel;
+import javax.swing.JMenuItem;
 
 public class Main {
-	DefaultListModel list;
-	ArrayList<DeckLocation> decksToImport = new ArrayList<DeckLocation>();
-    JTextField url = new JTextField("",10);
-    JTextField commander =  new JTextField("",10);
-    JTextField name =  new JTextField("",10);
+	DefaultListModel deckList;
+	DefaultListModel stagedList;
     JTextField folder =  new JTextField("",10);
+    private JTextField url;
+    private JTextField commander;
+    private JTextField name;
+    private DeckManager dm = new DeckManager();
 	private void writeDataToFile(InputStream inputStream, String filename) {
 		OutputStream os = null;
 
@@ -96,118 +113,288 @@ public class Main {
 	public Main() {
 		JFrame frame = new JFrame("TappedOut->TTS Deck Importer");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		list = new DefaultListModel();
-		// Add the ubiquitous "Hello World" label.
-		Button inputButton = new Button("Stage Decks from input dir");
-		inputButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				loadFromImportFolder();
-				updateListBox();
-			}
-		});
-
-		Button addUrl = new Button("Stage deck");
-		addUrl.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				CsvConverterDeck deck = new CsvConverterDeck();
-				
-				deck.setCommander(commander.getText());
-				deck.setName(name.getText());
-				String urlStr = url.getText();
-				if(!urlStr.contains("http://tappedout.net")){
-					urlStr =  "http://tappedout.net/mtg-decks/" + urlStr;
-				}
-				searchForDefaults(urlStr,deck);
-				DeckLocation loc = new DeckLocation(urlStr,deck.getCommanderStr(),deck.getDeckMetadata().getDeckName());
-				
-				if(!decksToImport.contains(loc)){
-					decksToImport.add(loc);
-				}
-				updateListBox();
-			}
-		});
-
-		Button collectionButton = new Button("Stage button from tappedout folder");
-		collectionButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String folderStr = folder.getText();
-				if(!folderStr.equals("")){
-					loadDecksFromTappedOutFolder(folderStr);
-					updateListBox();
-				}
-			}
-		});
-		
-		Button process = new Button("Process");
-	    process.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				for(DeckLocation loc : decksToImport){
-					try{
-						importDeck(loc);
-					}catch(Exception error){
-						error.printStackTrace();
-					}
-				}
-			}
-		});
-	    
-	    JLabel urlLabel = new JLabel("Deck Url:");
-	    JLabel commanderLabel = new JLabel("Commander/s:");
-	    JLabel nameLabel = new JLabel("Deck Name:");
+		deckList = new DefaultListModel();
+		stagedList = new DefaultListModel();
 	    JPanel mainPanel = new JPanel();
-	    mainPanel.setLayout(new GridLayout(0, 3));
 	    
-	    JPanel manualDeckText = new JPanel();
-	    manualDeckText.setLayout(new GridLayout(0,2));
-	    manualDeckText.add(urlLabel);
-	    manualDeckText.add(url);
-	    manualDeckText.add(commanderLabel);
-	    manualDeckText.add(commander);
-	    manualDeckText.add(nameLabel);
-	    manualDeckText.add(name);
+	    JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+	    				
+	    				JPanel AddDeckPanel = new JPanel();
+	    				tabbedPane.addTab("Add Deck", null, AddDeckPanel, null);
+	    				
+	    				JLabel label = new JLabel("Deck Url:");
+	    				
+	    				url = new JTextField("", 10);
+	    				
+	    				JLabel label_1 = new JLabel("Commander/s:");
+	    				
+	    				commander = new JTextField("", 10);
+	    				
+	    				JLabel label_2 = new JLabel("Deck Name:");
+	    				
+	    				name = new JTextField("", 10);
+	    				
+	   
+
+	    				
+	    				JButton button = new JButton("Add deck");
+	    				
+	    				button.addActionListener(new ActionListener() {
+	    					@Override
+	    					public void actionPerformed(ActionEvent e) {
+	    						DeckLocation loc = new DeckLocation(url.getText(),commander.getText(),name.getText());
+	    						
+	    						if(!dm.getDecks().contains(loc)){
+	    							dm.getDecks().add(loc);
+	    							updateListBox();
+	    						}
+	    					}
+	    				});
+	    				
+	    				GroupLayout gl_AddDeckPanel = new GroupLayout(AddDeckPanel);
+	    				gl_AddDeckPanel.setHorizontalGroup(
+	    					gl_AddDeckPanel.createParallelGroup(Alignment.LEADING)
+	    						.addGroup(gl_AddDeckPanel.createSequentialGroup()
+	    							.addGap(23)
+	    							.addGroup(gl_AddDeckPanel.createParallelGroup(Alignment.LEADING)
+	    								.addGroup(gl_AddDeckPanel.createSequentialGroup()
+	    									.addPreferredGap(ComponentPlacement.RELATED)
+	    									.addGroup(gl_AddDeckPanel.createParallelGroup(Alignment.LEADING)
+	    										.addComponent(label_1)
+	    										.addComponent(label)))
+	    								.addComponent(label_2))
+	    							.addPreferredGap(ComponentPlacement.UNRELATED)
+	    							.addGroup(gl_AddDeckPanel.createParallelGroup(Alignment.LEADING, false)
+	    								.addComponent(commander)
+	    								.addComponent(name)
+	    								.addComponent(url))
+	    							.addGap(134)
+	    							.addComponent(button, GroupLayout.PREFERRED_SIZE, 117, GroupLayout.PREFERRED_SIZE)
+	    							.addContainerGap(155, Short.MAX_VALUE))
+	    				);
+	    				gl_AddDeckPanel.setVerticalGroup(
+	    					gl_AddDeckPanel.createParallelGroup(Alignment.LEADING)
+	    						.addGroup(gl_AddDeckPanel.createSequentialGroup()
+	    							.addGroup(gl_AddDeckPanel.createParallelGroup(Alignment.TRAILING)
+	    								.addGroup(gl_AddDeckPanel.createSequentialGroup()
+	    									.addContainerGap()
+	    									.addComponent(button))
+	    								.addGroup(Alignment.LEADING, gl_AddDeckPanel.createSequentialGroup()
+	    									.addGap(108)
+	    									.addGroup(gl_AddDeckPanel.createParallelGroup(Alignment.BASELINE)
+	    										.addComponent(label)
+	    										.addComponent(url, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+	    									.addPreferredGap(ComponentPlacement.UNRELATED)
+	    									.addGroup(gl_AddDeckPanel.createParallelGroup(Alignment.LEADING)
+	    										.addComponent(label_1)
+	    										.addComponent(commander, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+	    							.addGap(21)
+	    							.addGroup(gl_AddDeckPanel.createParallelGroup(Alignment.BASELINE)
+	    								.addComponent(label_2)
+	    								.addComponent(name, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+	    							.addContainerGap(158, Short.MAX_VALUE))
+	    				);
+	    				AddDeckPanel.setLayout(gl_AddDeckPanel);
+	    				
+	    				JPanel collectionFrame = new JPanel();
+	    				
+	    				JPanel AddFolderPanel = new JPanel();
+	    				tabbedPane.addTab("Add From Folder", null, AddFolderPanel, null);
+	    				AddFolderPanel.setLayout(new BorderLayout());
+	    				AddFolderPanel.add(collectionFrame, BorderLayout.CENTER);
+	    						JLabel folderLabel = new JLabel("Folder Url");
+	    						
+	    								Button collectionButton = new Button("Add all from tapped out folder");
+	    								collectionButton.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+	    								collectionButton.setPreferredSize(new Dimension(80, 80));
+	    								GroupLayout gl_collectionFrame = new GroupLayout(collectionFrame);
+	    								gl_collectionFrame.setHorizontalGroup(
+	    									gl_collectionFrame.createParallelGroup(Alignment.LEADING)
+	    										.addGroup(gl_collectionFrame.createSequentialGroup()
+	    											.addContainerGap()
+	    											.addGroup(gl_collectionFrame.createParallelGroup(Alignment.TRAILING, false)
+	    												.addComponent(folderLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+	    												.addComponent(folder, GroupLayout.DEFAULT_SIZE, 282, Short.MAX_VALUE))
+	    											.addGap(25)
+	    											.addComponent(collectionButton, GroupLayout.PREFERRED_SIZE, 248, GroupLayout.PREFERRED_SIZE)
+	    											.addGap(22))
+	    								);
+	    								gl_collectionFrame.setVerticalGroup(
+	    									gl_collectionFrame.createParallelGroup(Alignment.LEADING)
+	    										.addGroup(gl_collectionFrame.createSequentialGroup()
+	    											.addGap(117)
+	    											.addGroup(gl_collectionFrame.createParallelGroup(Alignment.LEADING, false)
+	    												.addComponent(collectionButton, Alignment.TRAILING, 0, 0, Short.MAX_VALUE)
+	    												.addGroup(gl_collectionFrame.createSequentialGroup()
+	    													.addComponent(folderLabel)
+	    													.addPreferredGap(ComponentPlacement.RELATED)
+	    													.addComponent(folder, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE))))
+	    								);
+	    								collectionFrame.setLayout(gl_collectionFrame);
+	    								
+	    								JPanel ProcessPanel = new JPanel();
+	    								tabbedPane.addTab("Process", null, ProcessPanel, null);
+	    								
+	    								JPanel panel_1 = new JPanel();
+	    								
+	    								JList mainListElement = new JList<DeckLocation>(deckList);
+	    								
+	    								JScrollPane scrollPane = new JScrollPane(mainListElement);
+	    								scrollPane.setPreferredSize(new Dimension(250, 80));
+	    								
+	    								JPanel panel = new JPanel();
+	    								
+	    								JList stagedListElement = new JList<DeckLocation>(stagedList);
+	    								JScrollPane listScroller = new JScrollPane(stagedListElement);
+	    								listScroller.setPreferredSize(new Dimension(250, 80));
+	    								
+	    								Button process = new Button("Process");
+	    								 process.addActionListener(new ActionListener() {
+	    										@Override
+	    										public void actionPerformed(ActionEvent e) {
+	    											for(DeckLocation loc : dm.getStaged()){
+	    												try{
+	    													CsvConverterDeck deck = makeCsvDeckFromDecLocation(loc);
+	    													importDeck(deck);
+	    												}catch(Exception error){
+	    													error.printStackTrace();
+	    												}
+	    											}
+	    										}
+	    									});
+	    								JButton btnStage = new JButton(">");
+	    								btnStage.addActionListener(new ActionListener() {
+	    									public void actionPerformed(ActionEvent e) {
+	    										dm.getStaged().add(dm.getDecks().get(mainListElement.getSelectedIndex()));
+	    										dm.getDecks().remove(mainListElement.getSelectedIndex());
+	    										updateListBox();
+	    									}
+	    								});
+	    								JButton btnUnstage = new JButton("<");
+	    								btnUnstage.addActionListener(new ActionListener() {
+	    									public void actionPerformed(ActionEvent e) {
+	    										dm.getDecks().add(dm.getStaged().get(stagedListElement.getSelectedIndex()));
+	    										dm.getStaged().remove(stagedListElement.getSelectedIndex());
+	    										updateListBox();
+	    									}
+	    								});
+	    								
+	    								JLabel lblAddedDecks = new JLabel("Added Decks");
+	    								
+	    								JLabel lblStagedDecks = new JLabel("Staged Decks");
+	    								GroupLayout gl_ProcessPanel = new GroupLayout(ProcessPanel);
+	    								gl_ProcessPanel.setHorizontalGroup(
+	    									gl_ProcessPanel.createParallelGroup(Alignment.LEADING)
+	    										.addGroup(gl_ProcessPanel.createSequentialGroup()
+	    											.addContainerGap()
+	    											.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 181, GroupLayout.PREFERRED_SIZE)
+	    											.addGap(60)
+	    											.addGroup(gl_ProcessPanel.createParallelGroup(Alignment.LEADING)
+	    												.addComponent(btnUnstage, GroupLayout.DEFAULT_SIZE, 52, Short.MAX_VALUE)
+	    												.addComponent(btnStage, GroupLayout.DEFAULT_SIZE, 52, Short.MAX_VALUE))
+	    											.addGap(65)
+	    											.addComponent(panel, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE)
+	    											.addGap(62))
+	    										.addGroup(gl_ProcessPanel.createSequentialGroup()
+	    											.addGap(77)
+	    											.addComponent(lblAddedDecks)
+	    											.addPreferredGap(ComponentPlacement.RELATED, 304, Short.MAX_VALUE)
+	    											.addComponent(lblStagedDecks)
+	    											.addGap(122))
+	    								);
+	    								gl_ProcessPanel.setVerticalGroup(
+	    									gl_ProcessPanel.createParallelGroup(Alignment.TRAILING)
+	    										.addGroup(gl_ProcessPanel.createSequentialGroup()
+	    											.addGap(15)
+	    											.addGroup(gl_ProcessPanel.createParallelGroup(Alignment.BASELINE)
+	    												.addComponent(lblAddedDecks)
+	    												.addComponent(lblStagedDecks))
+	    											.addGap(18)
+	    											.addGroup(gl_ProcessPanel.createParallelGroup(Alignment.LEADING)
+	    												.addGroup(gl_ProcessPanel.createParallelGroup(Alignment.TRAILING)
+	    													.addGroup(Alignment.LEADING, gl_ProcessPanel.createSequentialGroup()
+	    														.addGap(34)
+	    														.addComponent(btnStage)
+	    														.addGap(34)
+	    														.addComponent(btnUnstage))
+	    													.addGroup(gl_ProcessPanel.createSequentialGroup()
+	    														.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 205, GroupLayout.PREFERRED_SIZE)
+	    														.addGap(259)))
+	    												.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+	    											.addGap(425))
+	    								);
+	    								GroupLayout gl_panel = new GroupLayout(panel);
+	    								gl_panel.setHorizontalGroup(
+	    									gl_panel.createParallelGroup(Alignment.LEADING)
+	    										.addGroup(gl_panel.createSequentialGroup()
+	    											.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+	    												.addComponent(stagedListElement)
+	    												.addComponent(listScroller, GroupLayout.PREFERRED_SIZE, 0, GroupLayout.PREFERRED_SIZE))
+	    											.addContainerGap(175, Short.MAX_VALUE))
+	    										.addComponent(process, GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)
+	    								);
+	    								gl_panel.setVerticalGroup(
+	    									gl_panel.createParallelGroup(Alignment.LEADING)
+	    										.addGroup(gl_panel.createSequentialGroup()
+	    											.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+	    												.addComponent(stagedListElement)
+	    												.addComponent(listScroller, GroupLayout.PREFERRED_SIZE, 205, GroupLayout.PREFERRED_SIZE))
+	    											.addPreferredGap(ComponentPlacement.RELATED)
+	    											.addComponent(process, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+	    											.addGap(4))
+	    								);
+	    								panel.setLayout(gl_panel);
+	    								panel_1.setLayout(new BorderLayout(0, 0));
+	    								panel_1.add(scrollPane);
+	    								ProcessPanel.setLayout(gl_ProcessPanel);
+	    	
+	    						collectionButton.addActionListener(new ActionListener() {
+	    							@Override
+	    							public void actionPerformed(ActionEvent e) {
+	    								String folderStr = folder.getText();
+	    								if(!folderStr.equals("")){
+	    									loadDecksFromTappedOutFolder(folderStr);
+	    									updateListBox();
+	    								}
+	    							}
+	    						});
+	    frame.getContentPane().add(mainPanel);
+	    GroupLayout gl_mainPanel = new GroupLayout(mainPanel);
+	    gl_mainPanel.setHorizontalGroup(
+	    	gl_mainPanel.createParallelGroup(Alignment.LEADING)
+	    		.addGroup(gl_mainPanel.createSequentialGroup()
+	    			.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 592, GroupLayout.PREFERRED_SIZE)
+	    			.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+	    );
+	    gl_mainPanel.setVerticalGroup(
+	    	gl_mainPanel.createParallelGroup(Alignment.TRAILING)
+	    		.addGroup(Alignment.LEADING, gl_mainPanel.createSequentialGroup()
+	    			.addContainerGap()
+	    			.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 335, Short.MAX_VALUE)
+	    			.addContainerGap())
+	    );
+	    mainPanel.setLayout(gl_mainPanel);
 	    
-	    JPanel manualDeckFrame = new JPanel();
-	    manualDeckFrame.setLayout(new GridLayout(1,2));
-	    manualDeckFrame.add(manualDeckText);
-	    manualDeckFrame.add(addUrl);
+	    JMenuBar menuBar = new JMenuBar();
+	    frame.getContentPane().add(menuBar, BorderLayout.NORTH);
 	    
-	    JPanel collectionFrame = new JPanel();
-	    JPanel folderPanel = new JPanel();
-	    JLabel folderLabel = new JLabel("Folder:");
+	    JMenu menu = new JMenu("Menu");
+	    menuBar.add(menu);
 	    
-	    folderPanel.setLayout(new GridLayout(0,2));
-	    folderPanel.add(folderLabel);
-	    folderPanel.add(folder);
+	    JMenuItem mntmNewMenuItem = new JMenuItem("Add Decks from input dir");
+
+	    mntmNewMenuItem.addActionListener(new ActionListener() {
+	    	@Override
+	    	public void actionPerformed(ActionEvent e) {
+	    		loadFromImportFolder();
+	    		updateListBox();
+	    	}
+	    });
+	    menu.add(mntmNewMenuItem);
 	    
-	    collectionFrame.add(folderPanel);
-	    collectionFrame.setLayout(new GridLayout(0,2));
-	    collectionFrame.add(collectionButton);
-	    
-	    
-	    JList jlist = new JList(list);
-	    JScrollPane listScroller = new JScrollPane(jlist);
-	    listScroller.setPreferredSize(new Dimension(250, 80));
-	    
-	    JPanel borderPanel1 = new JPanel();
-	    borderPanel1.setLayout(new BorderLayout());
-	    borderPanel1.add(manualDeckFrame, BorderLayout.CENTER);
-	    
-	    JPanel borderPanel2 = new JPanel();
-	    borderPanel2.setLayout(new BorderLayout());
-	    borderPanel2.add(collectionFrame, BorderLayout.CENTER);
-	    
-	    mainPanel.add(borderPanel1);
-	    mainPanel.add(borderPanel2);
-	    mainPanel.add(inputButton);
-	    
-        mainPanel.add(listScroller);
-	    mainPanel.add(process);
-	    frame.add(mainPanel);
-	    frame.setPreferredSize(new Dimension(1200, 400));
+	    JLabel lblTest = new JLabel("");
+	    menuBar.add(lblTest);
+	    frame.setPreferredSize(new Dimension(600, 400));
 	    frame.setResizable(false);
 		// Display the window.
 		frame.pack();
@@ -215,14 +402,16 @@ public class Main {
 	}
 
 	private void updateListBox() {
-		list.clear();
-		for (DeckLocation loc : decksToImport) {
-			list.addElement(loc.getName());
+		deckList.clear();
+		for (DeckLocation loc : dm.getDecks()) {
+			deckList.addElement(loc);
+		}
+		stagedList.clear();
+		for(DeckLocation loc: dm.getStaged()){
+			stagedList.addElement(loc);
 		}
 	}
-
-	public void importDeck(DeckLocation deckLocation) {
-		File cardList = new File("./input/cardList/generated");
+	public CsvConverterDeck makeCsvDeckFromDecLocation(DeckLocation deckLocation){
 		CsvConverterDeck deck = new CsvConverterDeck();
 		String url = deckLocation.getUrl();
 		String response = "";
@@ -235,11 +424,16 @@ public class Main {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return;
+			return null;
 		}
 
 		searchForDefaults(url, deck);
 		deck.loadDeckFromCsv(response, deckLocation.getCommander(), deckLocation.getName());
+		return deck;
+	}
+	public void importDeck(CsvConverterDeck deck) {
+		File cardList = new File("./input/cardList/generated");
+		
 		DeckMaker.createDeckFromCsvConverter(deck);
 		File f = new File(cardList.getPath() + "/" + deck.getDeckMetadata().getFriendlyDeckName() + ".txt");
 		PrintWriter pw;
@@ -313,8 +507,9 @@ public class Main {
 							commander = autoCommander;
 						}
 						DeckLocation location = new DeckLocation(url,commander , name );
-						if (!decksToImport.contains(location)) {
-							decksToImport.add(location);
+						if (!dm.getDecks().contains(location)) {
+							dm.getDecks().add(location);
+							updateListBox();
 						}
 					}
 				}
@@ -338,8 +533,9 @@ public class Main {
 			deckUrl = "http://tappedout.net" + deckUrl;
 			searchForDefaults(deckUrl, deck);
 			DeckLocation location = new DeckLocation(deckUrl,deck.getCommanderStr(),deck.getDeckMetadata().getDeckName());
-			if(!decksToImport.contains(location)){
-				decksToImport.add(location);			
+			if(!dm.getDecks().contains(location)){
+				dm.getDecks().add(location);	
+				updateListBox();
 			}
 		}
 	}
@@ -474,7 +670,6 @@ public class Main {
 		rd.close();
 		return result.toString();
 	}
-
 }
 
 class DeckLocation {
@@ -533,5 +728,8 @@ class DeckLocation {
 		}
 		DeckLocation test = (DeckLocation) o;
 		return test.getUrl().equals(this.getUrl()) && test.getName().equals(this.getName()) && test.getCommander().equals(this.getCommander());
+	}
+	public String toString(){
+		return this.getName();
 	}
 }
