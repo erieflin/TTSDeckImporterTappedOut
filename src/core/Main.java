@@ -34,11 +34,14 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.Timer;
 
 import utils.TappedOutUtils;
+import java.awt.Component;
+import javax.swing.JTextPane;
 
 public class Main {
 	static DefaultListModel<String> deckList;
@@ -107,6 +110,7 @@ public class Main {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		deckList = new DefaultListModel();
 		stagedList = new DefaultListModel();
+		
 		BufferedImage bi;
 		try {
 			bi = ImageIO.read(new File("resources/mtgSpinner.jpg"));
@@ -115,7 +119,13 @@ public class Main {
 			e1.printStackTrace();
 			return;
 		}
-		JLabel progressLabel = new JLabel("test");
+		JTextArea progressLabel = new JTextArea();
+		progressLabel.setEditable(false);  
+		progressLabel.setCursor(null);  
+		progressLabel.setOpaque(false);  
+		progressLabel.setFocusable(false);
+		progressLabel.setLineWrap(true);
+		progressLabel.setWrapStyleWord(true);
 		JPanel spinnerPanel = new JPanel() {
 			int i = 0;
 
@@ -249,86 +259,119 @@ public class Main {
 		JScrollPane scrollPane = new JScrollPane(mainListElement);
 		scrollPane.setPreferredSize(new Dimension(250, 60));
 
-		JPanel stagedPanel = new JPanel();
-
-		JList stagedListElement = new JList<String>(stagedList);
-		JScrollPane listScroller = new JScrollPane(stagedListElement);
-		listScroller.setPreferredSize(new Dimension(250, 40));
-
-		Button process = new Button("Process");
-		process.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-				new Thread(new Runnable() {
-					public void run() {
-						processing=true;
-						spinnerPanel.setVisible(true);
-						String deckNames = "";
-						
-						@SuppressWarnings("unchecked")
-						ArrayList<CsvConverterDeck> newStaged = (ArrayList<CsvConverterDeck>) dm.getStaged().clone();
-						int index = 0;
-						String seperator = "";
-						for (CsvConverterDeck deck : dm.getStaged()) {
-							try {
-								progressLabel.setText("importing deck "+ deck.getDeckMetadata().getName());
-								importDeck(deck);
-								dm.addDeck(dm.getStaged().get(0));
-								newStaged.remove(index);
-								updateListBox();
-								deckNames= deckNames+seperator + deck.getDeckMetadata().getName(); 
-							} catch (Exception error) {
-								error.printStackTrace();
-							}
-							index++;
-						}
-						processing = false;
-						spinnerPanel.setVisible(false);
-						progressLabel.setText("finished Processing decks "+ deckNames);
-						dm.setStaged(newStaged);
-					}
-				}).start();
-
-			}
-		});
-
 		JLabel lblAddedDecks = new JLabel("Added Decks");
 
 		JLabel lblStagedDecks = new JLabel("Staged Decks");
 
 		JPanel ActionsPanel = new JPanel();
+		
+		JPanel panel_1 = new JPanel();
+		
+		JList stagedListElement = new JList<String>(stagedList);
+		stagedListElement.setPreferredSize(new Dimension(10, 10));
+		stagedListElement.setRequestFocusEnabled(false);
+		
+		JScrollPane scrollPane_2 = new JScrollPane(stagedListElement);
+		scrollPane_2.setPreferredSize(new Dimension(250, 60));
+		GroupLayout gl_panel_1 = new GroupLayout(panel_1);
+		gl_panel_1.setHorizontalGroup(
+			gl_panel_1.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_1.createSequentialGroup()
+					.addComponent(scrollPane_2, GroupLayout.PREFERRED_SIZE, 181, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+		);
+		gl_panel_1.setVerticalGroup(
+			gl_panel_1.createParallelGroup(Alignment.LEADING)
+				.addComponent(scrollPane_2, GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
+		);
+		panel_1.setLayout(gl_panel_1);
+		dm.loadDecks();
+		JButton process = new JButton("Process");
+		 process.addActionListener(new ActionListener() {
+			                        @Override
+			                        public void actionPerformed(ActionEvent e) {
+			 
+			                                new Thread(new Runnable() {
+			                                        public void run() {
+			                                                processing=true;
+			                                                spinnerPanel.setVisible(true);
+			                                                String deckNames = "";
+			 
+			                                                @SuppressWarnings("unchecked")
+			                                                ArrayList<CsvConverterDeck> newStaged = (ArrayList<CsvConverterDeck>) dm.getStaged().clone();
+			                                                int index = 0;
+			                                                String seperator = "";
+			                                                for (CsvConverterDeck deck : dm.getStaged()) {
+			                                                        try {
+			                                                                progressLabel.setText("Importing deck "+ deck.getDeckMetadata().getName());
+			                                                                importDeck(deck);
+			                                                                dm.addDeck(dm.getStaged().get(0));
+			                                                                newStaged.remove(index);
+			                                                                updateListBox();
+			                                                                deckNames= deckNames+seperator + deck.getDeckMetadata().getName();
+			                                                        } catch (Exception error) {
+			                                                                error.printStackTrace();
+			                                                        }
+			                                                        index++;
+			                                                }
+			                                                processing = false;
+			                                                spinnerPanel.setVisible(false);
+			                                                progressLabel.setText("finished Processing decks "+ deckNames);
+			                                                dm.setStaged(newStaged);
+			                                        }
+			                                }).start();
+			 
+			                        }
+			                });
+		
+	
+
 		GroupLayout gl_ProcessActions = new GroupLayout(ProcessPanel);
 		gl_ProcessActions.setHorizontalGroup(
-			gl_ProcessActions.createParallelGroup(Alignment.LEADING)
+			gl_ProcessActions.createParallelGroup(Alignment.TRAILING)
+				.addGroup(Alignment.LEADING, gl_ProcessActions.createSequentialGroup()
+					.addGroup(gl_ProcessActions.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_ProcessActions.createSequentialGroup()
+							.addGap(75)
+							.addComponent(lblAddedDecks))
+						.addGroup(gl_ProcessActions.createSequentialGroup()
+							.addGap(21)
+							.addGroup(gl_ProcessActions.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_ProcessActions.createSequentialGroup()
+									.addComponent(deckPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addGap(30)
+									.addComponent(ActionsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addGap(40)
+									.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 181, GroupLayout.PREFERRED_SIZE))
+								.addGroup(gl_ProcessActions.createSequentialGroup()
+									.addGap(425)
+									.addComponent(lblStagedDecks)))))
+					.addContainerGap(34, Short.MAX_VALUE))
 				.addGroup(gl_ProcessActions.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(deckPanel, GroupLayout.PREFERRED_SIZE, 181, GroupLayout.PREFERRED_SIZE)
-					.addGap(43)
-					.addComponent(ActionsPanel, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE)
-					.addGap(42)
-					.addComponent(stagedPanel, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(22, Short.MAX_VALUE))
-				.addGroup(gl_ProcessActions.createSequentialGroup()
-					.addGap(73)
-					.addComponent(lblAddedDecks)
-					.addPreferredGap(ComponentPlacement.RELATED, 308, Short.MAX_VALUE)
-					.addComponent(lblStagedDecks)
-					.addGap(101))
+					.addContainerGap(435, Short.MAX_VALUE)
+					.addComponent(process)
+					.addGap(105))
+				.addGroup(Alignment.LEADING, gl_ProcessActions.createSequentialGroup()
+					.addGap(219)
+					.addComponent(progressLabel, GroupLayout.PREFERRED_SIZE, 178, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(212, Short.MAX_VALUE))
 		);
 		gl_ProcessActions.setVerticalGroup(
 			gl_ProcessActions.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_ProcessActions.createSequentialGroup()
-					.addGap(32)
+					.addComponent(progressLabel, GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_ProcessActions.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblAddedDecks)
 						.addComponent(lblStagedDecks))
 					.addGap(18)
 					.addGroup(gl_ProcessActions.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(ActionsPanel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(deckPanel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(stagedPanel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 241, Short.MAX_VALUE))
-					.addGap(626))
+						.addComponent(ActionsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(panel_1, Alignment.TRAILING, 0, 0, Short.MAX_VALUE)
+						.addComponent(deckPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(process)
+					.addGap(41))
 		);
 		JButton btnStage = new JButton(">");
 		JButton btnUnstage = new JButton("<");
@@ -359,29 +402,22 @@ public class Main {
 			gl_ActionsPanel.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_ActionsPanel.createSequentialGroup()
 					.addGap(31)
-					.addGroup(gl_ActionsPanel.createParallelGroup(Alignment.TRAILING)
-						.addGroup(Alignment.LEADING, gl_ActionsPanel.createParallelGroup(Alignment.TRAILING, false)
-							.addComponent(btnStage, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(btnUnstage, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))
-						.addGroup(Alignment.LEADING, gl_ActionsPanel.createParallelGroup(Alignment.TRAILING)
-							.addComponent(progressLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addGroup(Alignment.LEADING, gl_ActionsPanel.createSequentialGroup()
-								.addGap(9)
-								.addComponent(spinnerPanel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE))))
-					.addContainerGap(31, Short.MAX_VALUE))
+					.addGroup(gl_ActionsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(spinnerPanel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(btnUnstage, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(btnStage, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addGap(40))
 		);
 		gl_ActionsPanel.setVerticalGroup(
 			gl_ActionsPanel.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_ActionsPanel.createSequentialGroup()
-					.addGap(38)
+					.addContainerGap()
 					.addComponent(btnStage)
-					.addGap(32)
+					.addGap(18)
 					.addComponent(btnUnstage)
-					.addPreferredGap(ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
-					.addComponent(progressLabel, GroupLayout.PREFERRED_SIZE, 0, GroupLayout.PREFERRED_SIZE)
-					.addGap(35)
+					.addGap(37)
 					.addComponent(spinnerPanel, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE)
-					.addGap(21))
+					.addContainerGap(21, Short.MAX_VALUE))
 		);
 		ActionsPanel.setLayout(gl_ActionsPanel);
 		btnUnstage.addActionListener(new ActionListener() {
@@ -406,31 +442,14 @@ public class Main {
 				}).start();
 			}
 		});
-		GroupLayout gl_stagedPanel = new GroupLayout(stagedPanel);
-		gl_stagedPanel.setHorizontalGroup(gl_stagedPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_stagedPanel.createSequentialGroup()
-						.addGroup(gl_stagedPanel.createParallelGroup(Alignment.LEADING).addComponent(stagedListElement)
-								.addComponent(listScroller, GroupLayout.PREFERRED_SIZE, 0, GroupLayout.PREFERRED_SIZE))
-						.addContainerGap(175, Short.MAX_VALUE))
-				.addComponent(process, GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE));
-		gl_stagedPanel.setVerticalGroup(gl_stagedPanel.createParallelGroup(Alignment.LEADING).addGroup(gl_stagedPanel
-				.createSequentialGroup()
-				.addGroup(gl_stagedPanel.createParallelGroup(Alignment.LEADING).addComponent(stagedListElement)
-						.addComponent(listScroller, GroupLayout.PREFERRED_SIZE, 205, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addComponent(process, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addGap(4)));
-		stagedPanel.setLayout(gl_stagedPanel);
 		GroupLayout gl_deckPanel = new GroupLayout(deckPanel);
 		gl_deckPanel.setHorizontalGroup(
 			gl_deckPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_deckPanel.createSequentialGroup()
-					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 181, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+				.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 191, Short.MAX_VALUE)
 		);
 		gl_deckPanel.setVerticalGroup(
 			gl_deckPanel.createParallelGroup(Alignment.LEADING)
-				.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 217, Short.MAX_VALUE)
+				.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
 		);
 		deckPanel.setLayout(gl_deckPanel);
 		ProcessPanel.setLayout(gl_ProcessActions);
@@ -456,6 +475,11 @@ public class Main {
 		gl_mainPanel.setVerticalGroup(gl_mainPanel.createParallelGroup(Alignment.LEADING).addGroup(Alignment.TRAILING,
 				gl_mainPanel.createSequentialGroup()
 						.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 346, Short.MAX_VALUE).addContainerGap()));
+		
+		JScrollPane scrollPane_1 = new JScrollPane((Component) null);
+		scrollPane_1.setPreferredSize(new Dimension(250, 40));
+		
+		Button button_1 = new Button("Process");
 		mainPanel.setLayout(gl_mainPanel);
 
 		JMenuBar menuBar = new JMenuBar();
