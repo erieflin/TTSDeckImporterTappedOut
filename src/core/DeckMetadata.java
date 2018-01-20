@@ -58,7 +58,7 @@ private String id = "dummy";
 private String deckName;
 private String cardBackUrl;
 private String hiddenCardUrl;
-
+private String cardListUrl = "";
 private String coolify;
 private String artify;
 private String compression;
@@ -73,5 +73,11 @@ public String toString(){
 	sb.append(artify+"\n");
 	sb.append(compression+"\n");
 	return sb.toString();
+}
+public String getCardListUrl() {
+	return cardListUrl;
+}
+public void setCardListUrl(String cardListUrl) {
+	this.cardListUrl = cardListUrl;
 }
 }

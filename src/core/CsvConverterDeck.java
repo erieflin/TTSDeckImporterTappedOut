@@ -104,7 +104,9 @@ public class CsvConverterDeck {
 		getDeckMetadata().setDeckName(name);
 		getDeckMetadata().setId(name);
 	}
-
+	public void setCardListUrl(String cardListUrl){
+		getDeckMetadata().setCardListUrl(cardListUrl);
+	}
 	public void loadDeckFromText(String input, String commander, String name) {
 		if (!commander.equalsIgnoreCase("auto")) {
 			this.setCommander(commander);

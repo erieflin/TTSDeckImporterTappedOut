@@ -2,62 +2,54 @@ package core;
 
 import java.awt.BorderLayout;
 import java.awt.Button;
+import java.awt.ComponentOrientation;
 import java.awt.Dimension;
-import java.awt.GridLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
-import org.jsoup.select.Elements;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JTabbedPane;
-import java.awt.FlowLayout;
-import javax.swing.BoxLayout;
-import java.awt.ComponentOrientation;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 //import net.miginfocom.swing.MigLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JButton;
-import javax.swing.ListModel;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.Timer;
+
+import utils.TappedOutUtils;
 
 public class Main {
-	DefaultListModel deckList;
-	DefaultListModel stagedList;
+	static DefaultListModel<String> deckList;
+	static DefaultListModel<String> stagedList;
 	JTextField folder = new JTextField("", 10);
 	private JTextField url;
 	private JTextField commander;
 	private JTextField name;
-	private DeckManager dm = new DeckManager();
+	private int step = 0;
+	private static DeckManager dm = DeckManager.getInstance();
+	private boolean processing = true;
 
 	private void writeDataToFile(InputStream inputStream, String filename) {
 		OutputStream os = null;
@@ -115,6 +107,35 @@ public class Main {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		deckList = new DefaultListModel();
 		stagedList = new DefaultListModel();
+		BufferedImage bi;
+		try {
+			bi = ImageIO.read(new File("resources/mtgSpinner.jpg"));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return;
+		}
+		JLabel progressLabel = new JLabel("test");
+		JPanel spinnerPanel = new JPanel() {
+			int i = 0;
+
+			@Override
+			public Dimension getPreferredSize() {
+				return new Dimension(bi.getWidth(), bi.getHeight());
+			}
+
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				Graphics2D g2 = (Graphics2D) g;
+
+				//g2.rotate(Math.toRadians(45 * step), bi.getWidth(), bi.getHeight());
+				g2.rotate(Math.toRadians(9* step), bi.getWidth() / 2, bi.getHeight() / 2);
+
+				g2.drawImage(bi, 0, 0, null);
+			}
+		};
+		spinnerPanel.setVisible(false);
 		JPanel mainPanel = new JPanel();
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -141,10 +162,13 @@ public class Main {
 			public void actionPerformed(ActionEvent e) {
 				new Thread(new Runnable() {
 					public void run() {
-						DeckLocation loc = new DeckLocation(url.getText(), commander.getText(), name.getText());
+						CsvConverterDeck deck = new CsvConverterDeck();
+						deck.setCommander(commander.getText());
+						deck.setName(commander.getName());
+						deck.setCardListUrl(url.getText());
 
-						if (!dm.getDecks().contains(loc)) {
-							dm.getDecks().add(loc);
+						if (!dm.getDecks().contains(deck)) {
+							dm.addDeck(deck);
 							updateListBox();
 						}
 					}
@@ -216,38 +240,161 @@ public class Main {
 		JPanel ProcessPanel = new JPanel();
 		tabbedPane.addTab("Process", null, ProcessPanel, null);
 
-		JPanel panel_1 = new JPanel();
+		JPanel deckPanel = new JPanel();
 
-		JList mainListElement = new JList<DeckLocation>(deckList);
+		JList mainListElement = new JList<String>(deckList);
+		mainListElement.setPreferredSize(new Dimension(10, 10));
+		mainListElement.setRequestFocusEnabled(false);
 
 		JScrollPane scrollPane = new JScrollPane(mainListElement);
-		scrollPane.setPreferredSize(new Dimension(250, 80));
+		scrollPane.setPreferredSize(new Dimension(250, 60));
 
-		JPanel panel = new JPanel();
+		JPanel stagedPanel = new JPanel();
 
-		JList stagedListElement = new JList<DeckLocation>(stagedList);
+		JList stagedListElement = new JList<String>(stagedList);
 		JScrollPane listScroller = new JScrollPane(stagedListElement);
-		listScroller.setPreferredSize(new Dimension(250, 80));
+		listScroller.setPreferredSize(new Dimension(250, 40));
 
 		Button process = new Button("Process");
 		process.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+
 				new Thread(new Runnable() {
 					public void run() {
-						for (DeckLocation loc : dm.getStaged()) {
+						processing=true;
+						spinnerPanel.setVisible(true);
+						String deckNames = "";
+						
+						@SuppressWarnings("unchecked")
+						ArrayList<CsvConverterDeck> newStaged = (ArrayList<CsvConverterDeck>) dm.getStaged().clone();
+						int index = 0;
+						String seperator = "";
+						for (CsvConverterDeck deck : dm.getStaged()) {
 							try {
-								CsvConverterDeck deck = makeCsvDeckFromDecLocation(loc);
+								progressLabel.setText("importing deck "+ deck.getDeckMetadata().getName());
 								importDeck(deck);
+								dm.addDeck(dm.getStaged().get(0));
+								newStaged.remove(index);
+								updateListBox();
+								deckNames= deckNames+seperator + deck.getDeckMetadata().getName(); 
 							} catch (Exception error) {
 								error.printStackTrace();
 							}
+							index++;
 						}
+						processing = false;
+						spinnerPanel.setVisible(false);
+						progressLabel.setText("finished Processing decks "+ deckNames);
+						dm.setStaged(newStaged);
+					}
+				}).start();
+
+			}
+		});
+
+		JLabel lblAddedDecks = new JLabel("Added Decks");
+
+		JLabel lblStagedDecks = new JLabel("Staged Decks");
+
+		JPanel ActionsPanel = new JPanel();
+		GroupLayout gl_ProcessActions = new GroupLayout(ProcessPanel);
+		gl_ProcessActions.setHorizontalGroup(
+			gl_ProcessActions.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_ProcessActions.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(deckPanel, GroupLayout.PREFERRED_SIZE, 181, GroupLayout.PREFERRED_SIZE)
+					.addGap(43)
+					.addComponent(ActionsPanel, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE)
+					.addGap(42)
+					.addComponent(stagedPanel, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(22, Short.MAX_VALUE))
+				.addGroup(gl_ProcessActions.createSequentialGroup()
+					.addGap(73)
+					.addComponent(lblAddedDecks)
+					.addPreferredGap(ComponentPlacement.RELATED, 308, Short.MAX_VALUE)
+					.addComponent(lblStagedDecks)
+					.addGap(101))
+		);
+		gl_ProcessActions.setVerticalGroup(
+			gl_ProcessActions.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_ProcessActions.createSequentialGroup()
+					.addGap(32)
+					.addGroup(gl_ProcessActions.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblAddedDecks)
+						.addComponent(lblStagedDecks))
+					.addGap(18)
+					.addGroup(gl_ProcessActions.createParallelGroup(Alignment.LEADING, false)
+						.addComponent(ActionsPanel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(deckPanel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(stagedPanel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 241, Short.MAX_VALUE))
+					.addGap(626))
+		);
+		JButton btnStage = new JButton(">");
+		JButton btnUnstage = new JButton("<");
+
+		
+
+	
+
+		Timer timer = new Timer(100, new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (processing) {	
+					step++;
+					if (step > 40) {
+						step = 0;
+					}
+				} else {
+					step = 0;
+				}
+				spinnerPanel.repaint();
+			}
+
+		});
+		timer.start();
+		GroupLayout gl_ActionsPanel = new GroupLayout(ActionsPanel);
+		gl_ActionsPanel.setHorizontalGroup(
+			gl_ActionsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_ActionsPanel.createSequentialGroup()
+					.addGap(31)
+					.addGroup(gl_ActionsPanel.createParallelGroup(Alignment.TRAILING)
+						.addGroup(Alignment.LEADING, gl_ActionsPanel.createParallelGroup(Alignment.TRAILING, false)
+							.addComponent(btnStage, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(btnUnstage, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))
+						.addGroup(Alignment.LEADING, gl_ActionsPanel.createParallelGroup(Alignment.TRAILING)
+							.addComponent(progressLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addGroup(Alignment.LEADING, gl_ActionsPanel.createSequentialGroup()
+								.addGap(9)
+								.addComponent(spinnerPanel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE))))
+					.addContainerGap(31, Short.MAX_VALUE))
+		);
+		gl_ActionsPanel.setVerticalGroup(
+			gl_ActionsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_ActionsPanel.createSequentialGroup()
+					.addGap(38)
+					.addComponent(btnStage)
+					.addGap(32)
+					.addComponent(btnUnstage)
+					.addPreferredGap(ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
+					.addComponent(progressLabel, GroupLayout.PREFERRED_SIZE, 0, GroupLayout.PREFERRED_SIZE)
+					.addGap(35)
+					.addComponent(spinnerPanel, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE)
+					.addGap(21))
+		);
+		ActionsPanel.setLayout(gl_ActionsPanel);
+		btnUnstage.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new Thread(new Runnable() {
+					public void run() {
+						dm.addDeck(dm.getStaged().get(stagedListElement.getSelectedIndex()));
+						dm.getStaged().remove(stagedListElement.getSelectedIndex());
+						updateListBox();
 					}
 				}).start();
 			}
 		});
-		JButton btnStage = new JButton(">");
 		btnStage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new Thread(new Runnable() {
@@ -259,69 +406,34 @@ public class Main {
 				}).start();
 			}
 		});
-		JButton btnUnstage = new JButton("<");
-		btnUnstage.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new Thread(new Runnable() {
-					public void run() {
-						dm.getDecks().add(dm.getStaged().get(stagedListElement.getSelectedIndex()));
-						dm.getStaged().remove(stagedListElement.getSelectedIndex());
-						updateListBox();
-					}
-				}).start();
-			}
-		});
-
-		JLabel lblAddedDecks = new JLabel("Added Decks");
-
-		JLabel lblStagedDecks = new JLabel("Staged Decks");
-		GroupLayout gl_ProcessPanel = new GroupLayout(ProcessPanel);
-		gl_ProcessPanel.setHorizontalGroup(gl_ProcessPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_ProcessPanel.createSequentialGroup().addContainerGap()
-						.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 181, GroupLayout.PREFERRED_SIZE).addGap(60)
-						.addGroup(gl_ProcessPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(btnUnstage, GroupLayout.DEFAULT_SIZE, 52, Short.MAX_VALUE)
-								.addComponent(btnStage, GroupLayout.DEFAULT_SIZE, 52, Short.MAX_VALUE))
-						.addGap(65).addComponent(panel, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE)
-						.addGap(62))
-				.addGroup(gl_ProcessPanel.createSequentialGroup().addGap(77).addComponent(lblAddedDecks)
-						.addPreferredGap(ComponentPlacement.RELATED, 304, Short.MAX_VALUE).addComponent(lblStagedDecks)
-						.addGap(122)));
-		gl_ProcessPanel.setVerticalGroup(gl_ProcessPanel.createParallelGroup(Alignment.TRAILING)
-				.addGroup(gl_ProcessPanel.createSequentialGroup().addGap(15)
-						.addGroup(gl_ProcessPanel.createParallelGroup(Alignment.BASELINE).addComponent(lblAddedDecks)
-								.addComponent(lblStagedDecks))
-						.addGap(18)
-						.addGroup(gl_ProcessPanel
-								.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_ProcessPanel.createParallelGroup(Alignment.TRAILING)
-										.addGroup(Alignment.LEADING, gl_ProcessPanel.createSequentialGroup().addGap(34)
-												.addComponent(btnStage).addGap(34).addComponent(btnUnstage))
-										.addGroup(gl_ProcessPanel.createSequentialGroup()
-												.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 205,
-														GroupLayout.PREFERRED_SIZE)
-												.addGap(259)))
-								.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-										GroupLayout.PREFERRED_SIZE))
-						.addGap(425)));
-		GroupLayout gl_panel = new GroupLayout(panel);
-		gl_panel.setHorizontalGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-						.addGroup(gl_panel.createParallelGroup(Alignment.LEADING).addComponent(stagedListElement)
+		GroupLayout gl_stagedPanel = new GroupLayout(stagedPanel);
+		gl_stagedPanel.setHorizontalGroup(gl_stagedPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_stagedPanel.createSequentialGroup()
+						.addGroup(gl_stagedPanel.createParallelGroup(Alignment.LEADING).addComponent(stagedListElement)
 								.addComponent(listScroller, GroupLayout.PREFERRED_SIZE, 0, GroupLayout.PREFERRED_SIZE))
 						.addContainerGap(175, Short.MAX_VALUE))
 				.addComponent(process, GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE));
-		gl_panel.setVerticalGroup(gl_panel.createParallelGroup(Alignment.LEADING).addGroup(gl_panel
+		gl_stagedPanel.setVerticalGroup(gl_stagedPanel.createParallelGroup(Alignment.LEADING).addGroup(gl_stagedPanel
 				.createSequentialGroup()
-				.addGroup(gl_panel.createParallelGroup(Alignment.LEADING).addComponent(stagedListElement)
+				.addGroup(gl_stagedPanel.createParallelGroup(Alignment.LEADING).addComponent(stagedListElement)
 						.addComponent(listScroller, GroupLayout.PREFERRED_SIZE, 205, GroupLayout.PREFERRED_SIZE))
 				.addPreferredGap(ComponentPlacement.RELATED)
 				.addComponent(process, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addGap(4)));
-		panel.setLayout(gl_panel);
-		panel_1.setLayout(new BorderLayout(0, 0));
-		panel_1.add(scrollPane);
-		ProcessPanel.setLayout(gl_ProcessPanel);
+		stagedPanel.setLayout(gl_stagedPanel);
+		GroupLayout gl_deckPanel = new GroupLayout(deckPanel);
+		gl_deckPanel.setHorizontalGroup(
+			gl_deckPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_deckPanel.createSequentialGroup()
+					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 181, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+		);
+		gl_deckPanel.setVerticalGroup(
+			gl_deckPanel.createParallelGroup(Alignment.LEADING)
+				.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 217, Short.MAX_VALUE)
+		);
+		deckPanel.setLayout(gl_deckPanel);
+		ProcessPanel.setLayout(gl_ProcessActions);
 
 		collectionButton.addActionListener(new ActionListener() {
 			@Override
@@ -339,13 +451,11 @@ public class Main {
 		});
 		frame.getContentPane().add(mainPanel);
 		GroupLayout gl_mainPanel = new GroupLayout(mainPanel);
-		gl_mainPanel.setHorizontalGroup(gl_mainPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_mainPanel.createSequentialGroup()
-						.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 592, GroupLayout.PREFERRED_SIZE)
-						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
-		gl_mainPanel.setVerticalGroup(gl_mainPanel.createParallelGroup(Alignment.TRAILING).addGroup(Alignment.LEADING,
-				gl_mainPanel.createSequentialGroup().addContainerGap()
-						.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 335, Short.MAX_VALUE).addContainerGap()));
+		gl_mainPanel.setHorizontalGroup(gl_mainPanel.createParallelGroup(Alignment.LEADING).addComponent(tabbedPane,
+				GroupLayout.PREFERRED_SIZE, 614, Short.MAX_VALUE));
+		gl_mainPanel.setVerticalGroup(gl_mainPanel.createParallelGroup(Alignment.LEADING).addGroup(Alignment.TRAILING,
+				gl_mainPanel.createSequentialGroup()
+						.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 346, Short.MAX_VALUE).addContainerGap()));
 		mainPanel.setLayout(gl_mainPanel);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -372,43 +482,22 @@ public class Main {
 
 		JLabel lblTest = new JLabel("");
 		menuBar.add(lblTest);
-		frame.setPreferredSize(new Dimension(600, 400));
+		frame.setPreferredSize(new Dimension(620, 400));
 		frame.setResizable(false);
 		// Display the window.
 		frame.pack();
 		frame.setVisible(true);
 	}
 
-	private void updateListBox() {
+	public static void updateListBox() {
 		deckList.clear();
-		for (DeckLocation loc : dm.getDecks()) {
-			deckList.addElement(loc);
+		for (CsvConverterDeck deck : dm.getDecks()) {
+			deckList.addElement(deck.getDeckMetadata().getDeckName());
 		}
 		stagedList.clear();
-		for (DeckLocation loc : dm.getStaged()) {
-			stagedList.addElement(loc);
+		for (CsvConverterDeck deck : dm.getStaged()) {
+			stagedList.addElement(deck.getDeckMetadata().getDeckName());
 		}
-	}
-
-	public CsvConverterDeck makeCsvDeckFromDecLocation(DeckLocation deckLocation) {
-		CsvConverterDeck deck = new CsvConverterDeck();
-		String url = deckLocation.getUrl();
-		String response = "";
-		try {
-			String textUrl = url;
-			if (!textUrl.contains("?")) {
-				textUrl += "?fmt=csv";
-			}
-			response = getHTML(textUrl);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
-
-		searchForDefaults(url, deck);
-		deck.loadDeckFromCsv(response, deckLocation.getCommander(), deckLocation.getName());
-		return deck;
 	}
 
 	public void importDeck(CsvConverterDeck deck) {
@@ -477,7 +566,7 @@ public class Main {
 					}
 					if (i % 3 == 0) {
 						name = line;
-						searchForDefaults(url, deck);
+						TappedOutUtils.searchForDefaults(url, deck);
 						String autoName = deck.getDeckMetadata().getDeckName();
 						String autoCommander = deck.getCommanderStr();
 						if (!autoName.equals("") && !autoName.equals("auto") && name.equals("auto")) {
@@ -486,11 +575,9 @@ public class Main {
 						if (!autoCommander.equals("") && !autoCommander.equals("auto") && commander.equals("auto")) {
 							commander = autoCommander;
 						}
-						DeckLocation location = new DeckLocation(url, commander, name);
-						if (!dm.getDecks().contains(location)) {
-							dm.getDecks().add(location);
-							updateListBox();
-						}
+						dm.addDeck(url, commander, name);
+						updateListBox();
+
 					}
 				}
 
@@ -507,17 +594,11 @@ public class Main {
 	}
 
 	public void loadDecksFromTappedOutFolder(String folderName) {
-		ArrayList<String> deckUrls = searchDeckCollection(folderName);
+		ArrayList<String> deckUrls = TappedOutUtils.searchDeckCollection(folderName);
 		for (String deckUrl : deckUrls) {
-			CsvConverterDeck deck = new CsvConverterDeck();
 			deckUrl = "http://tappedout.net" + deckUrl;
-			searchForDefaults(deckUrl, deck);
-			DeckLocation location = new DeckLocation(deckUrl, deck.getCommanderStr(),
-					deck.getDeckMetadata().getDeckName());
-			if (!dm.getDecks().contains(location)) {
-				dm.getDecks().add(location);
-				updateListBox();
-			}
+			dm.addDeck(deckUrl, "auto", "auto");
+			updateListBox();
 		}
 	}
 
@@ -543,7 +624,7 @@ public class Main {
 				deck = new CsvConverterDeck();
 				System.out.println("please enter url of tapped out deck list");
 				url = in.nextLine();
-				searchForDefaults(url, deck);
+				TappedOutUtils.searchForDefaults(url, deck);
 				if (!url.contains("?")) {
 					url += "?fmt=csv";
 				}
@@ -555,7 +636,7 @@ public class Main {
 				name = in.nextLine();
 				String response;
 				try {
-					response = getHTML(url);
+					response = TappedOutUtils.getHTML(url);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -565,156 +646,5 @@ public class Main {
 				DeckMaker.createDeckFromCsvConverter(deck);
 			}
 		}
-	}
-
-	public static ArrayList<String> searchDeckCollection(String collectionName) {
-		String url = "http://tappedout.net/mtg-deck-folders/" + collectionName;
-		ArrayList<String> deckUrls = new ArrayList<String>();
-		try {
-			String html = getHTML(url);
-			Document doc = Jsoup.parse(html);
-			Elements mediumMatched = doc.getElementsByClass("medium-deck-name");
-			Elements longMatched = doc.getElementsByClass("long-deck-name");
-			Elements shortMatched = doc.getElementsByClass("short-deck-name");
-			mediumMatched.addAll(0, longMatched);
-			mediumMatched.addAll(shortMatched);
-			Elements linked = mediumMatched.select("a");
-			for (Element e : linked) {
-				String deckUrl = e.attr("href");
-				deckUrls.add(deckUrl);
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return deckUrls;
-	}
-
-	public static void searchForDefaults(String url, CsvConverterDeck deck) {
-		String printable;
-		try {
-			if (!url.endsWith("/")) {
-				url += "/";
-			}
-			printable = getHTML(url + "?fmt=printable");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
-		Document doc = Jsoup.parse(printable);
-		Elements divsMatched = doc.select("div:has(h2:contains(commander))");
-		if (divsMatched.size() == 0) {
-			divsMatched = doc.select("div:has(h2:contains(commanders))");
-		}
-		StringBuilder commanderBuilder = new StringBuilder("");
-		Element divWrapper = divsMatched.last();
-		for (TextNode node : divWrapper.textNodes()) {
-			commanderBuilder.append(node.getWholeText());
-		}
-		String contents = commanderBuilder.toString();
-		commanderBuilder = new StringBuilder();
-		Scanner scan = new Scanner(contents);
-		while (scan.hasNextLine()) {
-			String line = scan.nextLine().trim();
-			if (line.startsWith("1")) {
-				line = line.substring(1).trim();
-			}
-			if (line.startsWith("x")) {
-				line = line.substring(1).trim();
-			}
-			if (!line.equals("")) {
-				commanderBuilder.append(line + ":");
-			}
-		}
-		String result = commanderBuilder.toString();
-		if (result.endsWith(":")) {
-			result = result.substring(0, result.length() - 1);
-		}
-		deck.setCommander(result);
-		divsMatched = doc.select("h2");
-		Element nameHeader = divsMatched.first();
-		deck.setName(nameHeader.text().replaceAll("\"", ""));
-	}
-
-	public static String getHTML(String urlToRead) throws Exception {
-		StringBuilder result = new StringBuilder();
-		URL url = new URL(urlToRead);
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		conn.setRequestProperty("User-Agent",
-				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
-		conn.setRequestMethod("GET");
-		BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		String line;
-		while ((line = rd.readLine()) != null) {
-			result.append(line + "\n");
-		}
-		rd.close();
-		return result.toString();
-	}
-}
-
-class DeckLocation {
-	private String url = "";
-	private String commander = "auto";
-	private String name = "auto";
-
-	public DeckLocation() {
-
-	}
-
-	public DeckLocation(String url, String commander, String name) {
-		this.setUrl(url);
-		this.setCommander(commander);
-		this.setName(name);
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		if (name.equals("")) {
-			name = "auto";
-		}
-		this.name = name;
-	}
-
-	public String getCommander() {
-		return commander;
-	}
-
-	public void setCommander(String commander) {
-		if (commander.equals("")) {
-			commander = "auto";
-		}
-		this.commander = commander;
-	}
-
-	public boolean equals(Object o) {
-		if (o == null) {
-			return false;
-		}
-		if (o == this) {
-			return true;
-		}
-		if (!(o instanceof DeckLocation)) {
-			return false;
-		}
-		DeckLocation test = (DeckLocation) o;
-		return test.getUrl().equals(this.getUrl()) && test.getName().equals(this.getName())
-				&& test.getCommander().equals(this.getCommander());
-	}
-
-	public String toString() {
-		return this.getName();
 	}
 }
