@@ -298,15 +298,17 @@ public class Main {
 			                                                String deckNames = "";
 			 
 			                                                @SuppressWarnings("unchecked")
-			                                                ArrayList<CsvConverterDeck> newStaged = (ArrayList<CsvConverterDeck>) dm.getStaged().clone();
+			                                                ArrayList<CsvConverterDeck> oldStaged = (ArrayList<CsvConverterDeck>) dm.getStaged().clone();
 			                                                int index = 0;
+			                                                int offset = 0;
 			                                                String seperator = "";
-			                                                for (CsvConverterDeck deck : dm.getStaged()) {
+			                                                for (CsvConverterDeck deck : oldStaged) {
 			                                                        try {
 			                                                                progressLabel.setText("Importing deck "+ deck.getDeckMetadata().getName());
 			                                                                importDeck(deck);
-			                                                                dm.addDeck(dm.getStaged().get(0));
-			                                                                newStaged.remove(index);
+			                                                                dm.addDeck(oldStaged.get(index));
+			                                                                dm.getStaged().remove(index-offset);
+			                                                                offset++;
 			                                                                updateListBox();
 			                                                                deckNames= deckNames+seperator + deck.getDeckMetadata().getName();
 			                                                        } catch (Exception error) {
@@ -316,8 +318,8 @@ public class Main {
 			                                                }
 			                                                processing = false;
 			                                                spinnerPanel.setVisible(false);
-			                                                progressLabel.setText("finished Processing decks "+ deckNames);
-			                                                dm.setStaged(newStaged);
+			                                                progressLabel.setText("Finished processing decks "+ deckNames);
+			                                               
 			                                        }
 			                                }).start();
 			 
