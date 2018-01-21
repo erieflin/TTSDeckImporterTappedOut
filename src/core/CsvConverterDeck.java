@@ -94,6 +94,9 @@ public class CsvConverterDeck {
 	}
 
 	public void setName(String name) {
+		if(name.trim().equals("")){
+			name = "auto";
+		}
 		name = name.replaceAll("\\\\", " ");
 		name = name.replaceAll("/", " ");
 		name = name.replaceAll(":", " ");
@@ -161,6 +164,9 @@ public class CsvConverterDeck {
 	}
 
 	public void setCommander(String commander) {
+		if(commander.trim().equals("")){
+			commander = "auto";
+		}
 		this.setCommanderStr(commander);
 		this.commander = Arrays.asList(commander.split(":"));
 	}

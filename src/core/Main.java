@@ -172,15 +172,8 @@ public class Main {
 			public void actionPerformed(ActionEvent e) {
 				new Thread(new Runnable() {
 					public void run() {
-						CsvConverterDeck deck = new CsvConverterDeck();
-						deck.setCommander(commander.getText());
-						deck.setName(commander.getName());
-						deck.setCardListUrl(url.getText());
-
-						if (!dm.getDecks().contains(deck)) {
-							dm.addDeck(deck);
+							dm.addDeck(url.getText(), commander.getText(), name.getText());
 							updateListBox();
-						}
 					}
 				}).start();
 			}
