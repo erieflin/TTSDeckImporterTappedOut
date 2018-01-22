@@ -81,23 +81,7 @@ public class ImageUtils {
 	
 	public static void DownloadImages(Deck deck){
 		AttemptClearFailedCards();
-
-		for(int i = deck.cardList.size()-1; i >= 0; i--){
-			FrogCard card = deck.cardList.get(i);
-			boolean success = false;
-			for(CardRetriever retriever : cardRetrievers){
-				if(!retriever.HasCardFailed(card)){
-					success = retriever.LoadCard(card);
-					if(success) break;
-				}
-			}
-			
-			if(!success){
-				deck.unknownCards.add(card);
-				deck.cardList.remove(i);
-			}
-		}
-
+		
 		for(int i = deck.transformList.size()-1; i >= 0; i--){
 			FrogCard card = deck.transformList.get(i);
 			boolean success = false;
@@ -112,6 +96,27 @@ public class ImageUtils {
 				deck.cardList.remove(card);
 			}
 		}
+		
+		for(int i = deck.cardList.size()-1; i >= 0; i--){
+			FrogCard card = deck.cardList.get(i);
+			boolean success = false;
+			for(CardRetriever retriever : cardRetrievers){
+				if(!retriever.HasCardFailed(card)){
+					success = retriever.LoadCard(card);
+					if(card.doubleSided && !deck.transformList.contains(card)){
+						deck.transformList.add(card);
+					}
+					if(success) break;
+				}
+			}
+			
+			if(!success){
+				deck.unknownCards.add(card);
+				deck.cardList.remove(i);
+			}
+		}
+
+		
 	
 		if(deck.hiddenUrl != null && !deck.hiddenUrl.equals("default")){
 			deck.hiddenImage = ImageFromUrl(deck.hiddenUrl);

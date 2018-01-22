@@ -101,7 +101,7 @@ public class ScryfallCardRetriever extends CardRetriever {
 			if(isBack) card.transformImageFileName = imageFileName;
 			else card.imageFileName = imageFileName;
 			System.out.println(imageFileName);
-			if(new File(imageFileName).exists()) return true;
+			
 			//if(HandleHardCard(cardName, imageFileName)) return true;
 			//if(HandleHardCard(cleanCardName, imageFileName)) return true;
 		
@@ -116,8 +116,10 @@ public class ScryfallCardRetriever extends CardRetriever {
 				}
 				if(card.transformName == null){
 					card.transformName = faces.get(1).getAsJsonObject().get(Constants.NAME_ID).getAsString();
+					card.doubleSided = true;
 				}
 			}
+			if(new File(imageFileName).exists() ) return true;
 		    JsonObject images = jsonCard.get(Constants.IMAGE_URI_ID).getAsJsonObject(); 
 			String url = images.get(Constants.SIZE_ID).getAsString();
 			return ImageUtils.SaveImage(url, imageFileName, 1.0);
