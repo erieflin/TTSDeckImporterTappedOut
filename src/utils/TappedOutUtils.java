@@ -32,32 +32,42 @@ public class TappedOutUtils {
 		Elements divsMatched = doc.select("div:has(h2:contains(commander))");
 		if (divsMatched.size() == 0) {
 			divsMatched = doc.select("div:has(h2:contains(commanders))");
+			if (divsMatched.size() == 0) {
+				divsMatched = null;
+			}
 		}
 		StringBuilder commanderBuilder = new StringBuilder("");
-		Element divWrapper = divsMatched.last();
-		for (TextNode node : divWrapper.textNodes()) {
-			commanderBuilder.append(node.getWholeText());
-		}
-		String contents = commanderBuilder.toString();
-		commanderBuilder = new StringBuilder();
-		Scanner scan = new Scanner(contents);
-		while (scan.hasNextLine()) {
-			String line = scan.nextLine().trim();
-			if (line.startsWith("1")) {
-				line = line.substring(1).trim();
+		
+		if(divsMatched != null)
+		{
+			Element divWrapper = divsMatched.last();
+		
+			for (TextNode node : divWrapper.textNodes()) {
+				commanderBuilder.append(node.getWholeText());
 			}
-			if (line.startsWith("x")) {
-				line = line.substring(1).trim();
+			
+			String contents = commanderBuilder.toString();
+			commanderBuilder = new StringBuilder();
+			Scanner scan = new Scanner(contents);
+			while (scan.hasNextLine()) {
+				String line = scan.nextLine().trim();
+				if (line.startsWith("1")) {
+					line = line.substring(1).trim();
+				}
+				if (line.startsWith("x")) {
+					line = line.substring(1).trim();
+				}
+				if (!line.equals("")) {
+					commanderBuilder.append(line + ":");
+				}
 			}
-			if (!line.equals("")) {
-				commanderBuilder.append(line + ":");
+			String result = commanderBuilder.toString();
+			if (result.endsWith(":")) {
+				result = result.substring(0, result.length() - 1);
 			}
+			deck.setCommander(result);
 		}
-		String result = commanderBuilder.toString();
-		if (result.endsWith(":")) {
-			result = result.substring(0, result.length() - 1);
-		}
-		deck.setCommander(result);
+		
 		divsMatched = doc.select("h2");
 		Element nameHeader = divsMatched.first();
 		deck.setName(nameHeader.text().replaceAll("\"", ""));
