@@ -1,9 +1,34 @@
 package core;
 
+import importObjects.deck.constructed.EDH;
+import importers.cardImporter.Scryfall;
+import importers.deckImporter.TappedOutImporter;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class Main
 {
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
-        //TODO implement
+        if(args.length != 2)
+        {
+            throw new IOException("Pass your TappedOut Username & Password!");
+        }
+
+        String user = args[0];
+        String pass = args[1];
+
+        String someTappedOutUrl = "http://tappedout.net/mtg-decks/mayael-the-anima-irl/";
+
+        URL url = new URL(someTappedOutUrl);
+
+        //AbstractCardImporter cardImportMethod, URL deckURL
+
+        TappedOutImporter importer = new TappedOutImporter(new Credentials(user, pass), new Scryfall(), url);
+
+        EDH deck = new EDH(importer);
     }
 }
+

@@ -2,17 +2,32 @@ package importers.deckImporter;
 
 import java.net.URL;
 import com.google.gson.JsonObject;
+import core.Credentials;
+import importObjects.deck.AbstractDeck;
+import importers.cardImporter.AbstractCardImporter;
 
-public class AbstractDeckImporter
+public abstract class AbstractDeckImporter
 {
+    protected AbstractCardImporter cardImporter;
+    protected AbstractDeck deck;
+    protected Credentials credentials;
 
-    public AbstractDeckImporter(URL deckURL)
+    protected AbstractDeckImporter(Credentials credentials, AbstractCardImporter cardImportMethod, URL deckURL)
     {
-        //TODO implement
+        cardImporter = cardImportMethod;
+        this.credentials = credentials;
+        importDeckURL(deckURL);
+
     }
 
-    public AbstractDeckImporter(JsonObject deckFile)
+    protected AbstractDeckImporter(Credentials credentials, AbstractCardImporter cardImportMethod, JsonObject deckFile)
     {
-        //TODO implement
+        cardImporter = cardImportMethod;
+        this.credentials = credentials;
+        importDeckURL(deckFile);
     }
+
+    protected abstract void importDeckURL(URL deckURL);
+
+    protected abstract void importDeckURL(JsonObject deckFile);
 }

@@ -8,13 +8,13 @@ import java.net.URL;
 
 public class AbstractConstructed extends AbstractDeck
 {
-    protected AbstractConstructed(String deckName, AbstractDeckImporter importer, URL sleeveUrl)
+    protected AbstractConstructed(AbstractDeckImporter importer, URL sleeveUrl)
     {
-        super(deckName, importer, sleeveUrl);
+        super(importer, sleeveUrl);
     }
 
-    protected AbstractConstructed(String deckName, AbstractDeckImporter importer) throws MalformedURLException
+    protected AbstractConstructed(AbstractDeckImporter importer) throws MalformedURLException
     {
-        super(deckName, importer);
+        super(importer);
     }
 }

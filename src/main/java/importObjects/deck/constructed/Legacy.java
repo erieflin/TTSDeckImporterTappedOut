@@ -7,13 +7,13 @@ import java.net.URL;
 
 public class Legacy extends AbstractConstructed
 {
-    public Legacy(String deckName, AbstractDeckImporter importer, URL sleeveUrl)
+    public Legacy(AbstractDeckImporter importer, URL sleeveUrl)
     {
-        super(deckName, importer, sleeveUrl);
+        super(importer, sleeveUrl);
     }
 
-    public Legacy(String deckName, AbstractDeckImporter importer) throws MalformedURLException
+    public Legacy(AbstractDeckImporter importer) throws MalformedURLException
     {
-        super(deckName, importer);
+        super(importer);
     }
 }

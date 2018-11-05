@@ -17,18 +17,18 @@ public abstract class AbstractDeck
     private ArrayList<Token> tokenList;
     private URL sleeveImageUrl;
 
-    protected AbstractDeck(String deckName, AbstractDeckImporter importer, URL sleeveUrl)
+    protected AbstractDeck(AbstractDeckImporter importer, URL sleeveUrl)
     {
-        name = deckName;
+//        name = importer.deckName; //TODO fill in
         deckImporter = importer;
         cardList = new ArrayList<>();
         tokenList = new ArrayList<>();
         sleeveImageUrl = sleeveUrl;
     }
 
-    protected AbstractDeck(String deckName, AbstractDeckImporter importer) throws MalformedURLException
+    protected AbstractDeck(AbstractDeckImporter importer) throws MalformedURLException
     {
-        this(deckName, importer, new URL(Constants.defaultSleeveImageUrl));
+        this(importer, new URL(Constants.DEFAULT_SLEEVE_IMAGE_URL));
     }
 
     //TODO either here or somewhere else, some constructor that pulls from a file (probably somewhere else using enum of sorts for deck type and whatnot)

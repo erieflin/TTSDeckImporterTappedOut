@@ -7,13 +7,13 @@ import java.net.URL;
 
 public class Cube extends AbstractLimited
 {
-    public Cube(String deckName, AbstractDeckImporter importer, URL sleeveUrl)
+    public Cube(AbstractDeckImporter importer, URL sleeveUrl)
     {
-        super(deckName, importer, sleeveUrl);
+        super(importer, sleeveUrl);
     }
 
-    public Cube(String deckName, AbstractDeckImporter importer) throws MalformedURLException
+    public Cube(AbstractDeckImporter importer) throws MalformedURLException
     {
-        super(deckName, importer);
+        super(importer);
     }
 }

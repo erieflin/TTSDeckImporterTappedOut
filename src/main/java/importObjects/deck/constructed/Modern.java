@@ -7,13 +7,13 @@ import java.net.URL;
 
 public class Modern extends AbstractConstructed
 {
-    public Modern(String deckName, AbstractDeckImporter importer, URL sleeveUrl)
+    public Modern(AbstractDeckImporter importer, URL sleeveUrl)
     {
-        super(deckName, importer, sleeveUrl);
+        super(importer, sleeveUrl);
     }
 
-    public Modern(String deckName, AbstractDeckImporter importer) throws MalformedURLException
+    public Modern(AbstractDeckImporter importer) throws MalformedURLException
     {
-        super(deckName, importer);
+        super(importer);
     }
 }

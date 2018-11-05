@@ -7,13 +7,13 @@ import java.net.URL;
 
 public class Pauper extends AbstractConstructed
 {
-    public Pauper(String deckName, AbstractDeckImporter importer, URL sleeveUrl)
+    public Pauper(AbstractDeckImporter importer, URL sleeveUrl)
     {
-        super(deckName, importer, sleeveUrl);
+        super(importer, sleeveUrl);
     }
 
-    public Pauper(String deckName, AbstractDeckImporter importer) throws MalformedURLException
+    public Pauper(AbstractDeckImporter importer) throws MalformedURLException
     {
-        super(deckName, importer);
+        super(importer);
     }
 }
