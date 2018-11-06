@@ -5,7 +5,6 @@ import importers.cardImporter.Scryfall;
 import importers.deckImporter.TappedOutImporter;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class Main
@@ -20,11 +19,10 @@ public class Main
         String user = args[0];
         String pass = args[1];
 
-        String someTappedOutUrl = "http://tappedout.net/mtg-decks/mayael-the-anima-irl/";
+        String someTappedOutUrl = "http://tappedout.net/mtg-decks/testing-area/";
+        //"http://tappedout.net/mtg-decks/mayael-the-anima-irl/";
 
         URL url = new URL(someTappedOutUrl);
-
-        //AbstractCardImporter cardImportMethod, URL deckURL
 
         TappedOutImporter importer = new TappedOutImporter(new Credentials(user, pass), new Scryfall(), url);
 

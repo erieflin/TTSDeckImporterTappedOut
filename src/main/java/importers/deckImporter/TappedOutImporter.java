@@ -2,8 +2,10 @@ package importers.deckImporter;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
 import core.Constants;
 import core.Credentials;
+import importObjects.Card;
 import importers.cardImporter.AbstractCardImporter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -12,22 +14,22 @@ import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class TappedOutImporter extends AbstractDeckImporter
+public class TappedOutImporter extends AbstractUrlDeckImporter
 {
-    public TappedOutImporter(Credentials tappedOutCredentials, AbstractCardImporter cardImportMethod, URL deckURL)
+    private String loginCookie;
+
+    public TappedOutImporter(Credentials tappedOutCredentials, AbstractCardImporter cardImportMethod, URL deckURL) throws IOException
     {
         super(tappedOutCredentials, cardImportMethod, deckURL);
     }
 
-    public TappedOutImporter(Credentials tappedOutCredentials, AbstractCardImporter cardImportMethod, JsonObject deckFile)
-    {
-        super(tappedOutCredentials, cardImportMethod, deckFile);
-    }
-
     @Override
-    protected void importDeckURL(URL deckURL)
+    protected List<Card> importDeckURL(URL deckURL) throws IOException
     {
         //http://tappedout.net/api/collection/collection:deck/mayael-the-anima-irl/
 
@@ -38,37 +40,49 @@ public class TappedOutImporter extends AbstractDeckImporter
         String[] arr = url.split("/");
         String urlDeckName = arr[arr.length - 1];
 
-        URL request = null;
-        try
+        URL request = new URL(Constants.TAPPED_OUT_API_URL + urlDeckName);
+
+        URLConnection urlConnection = request.openConnection();
+        urlConnection.setRequestProperty("Cookie", "tapped="+getLoginCookie());
+
+        InputStreamReader reader = new InputStreamReader(urlConnection.getInputStream());
+
+        TappedOutDto readDto = new Gson().fromJson(reader, TappedOutDto.class);
+
+        List<Card> deckList = new ArrayList<>();
+
+        for(int i = 0; i < readDto.inventory.size(); i++)
         {
-            request = new URL(Constants.TAPPED_OUT_API_URL + urlDeckName);
+            String cardNameWithExtras = (String)(readDto.inventory.get(i).get(0));
 
-            URLConnection urlConnection = request.openConnection();
-            urlConnection.setRequestProperty("Cookie", "tapped="+getLoginCookie());
+            Matcher m = Pattern.compile("(^.*?)(?=(\\*|\\())").matcher(cardNameWithExtras);
+            String cardName = m.find() ? m.group(1).trim() : null;
 
-            InputStreamReader reader = new InputStreamReader(urlConnection.getInputStream());
+            m = Pattern.compile("(\\(.*\\))").matcher(cardNameWithExtras);
+            String set = m.find() ? m.group(1).trim() : null;
 
-            TappedOutDto readDto = new Gson().fromJson(reader, TappedOutDto.class); //TODO dto doesn't work, see error in console
+            m = Pattern.compile("(\\*.*?\\*)").matcher(cardNameWithExtras);
+            List<Card.CardModifier> modifiers = new ArrayList<>();
+            while (m.find())
+            {
+                String modifier = m.group(1).trim();
 
+                if(modifier.equalsIgnoreCase("*F*"))
+                    modifiers.add(Card.CardModifier.FOIL);
+                else if(modifier.equalsIgnoreCase("*CMDR*"))
+                    modifiers.add(Card.CardModifier.COMMANDER);
+                else if(modifier.contains("*A:"))
+                    modifiers.add(Card.CardModifier.ALTER);
+            }
+
+            LinkedTreeMap<String, Object> map = (LinkedTreeMap<String, Object>)(readDto.inventory.get(i).get(1));
+            Card.Board board = Card.Board.valueOf((String)map.get(Constants.TAPPED_OUT_BOARD_KEY));
+            int quantity = (int)((double)map.get(Constants.TAPPED_OUT_QTY_KEY));
+
+            deckList.add(new Card.CardBuilder(cardName, this.cardImporter).set(set).quantity(quantity).modifiers(modifiers).board(board).construct());
         }
-        catch (MalformedURLException e)
-        {
-            e.printStackTrace();
-            //TODO handle
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            //TODO handle
-        }
 
-
-    }
-
-    @Override
-    protected void importDeckURL(JsonObject deckFile)
-    {
-        //TODO finish
+        return deckList;
     }
 
     private static class TappedOutDto
@@ -79,7 +93,11 @@ public class TappedOutImporter extends AbstractDeckImporter
         String featured_card;
         String dateUpdated;
         String score;
-        List<List<String>> inventory;
+        List<List<Object>> inventory;
+        //[0] = String cardname thingy
+        //[1] = LinkedTreeMap, with the following:
+            //key b = board ("main" usually)
+            //key qty = double of quantity (1.0 usually)
         String resource_uri;
         String thumbnail_url;
         String slug;
@@ -89,6 +107,11 @@ public class TappedOutImporter extends AbstractDeckImporter
 
     private String getLoginCookie() throws IOException
     {
+        if(loginCookie != null)
+        {
+            return loginCookie;
+        }
+
         CookieManager cookieManager = new CookieManager();
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         CookieHandler.setDefault(cookieManager);
@@ -134,8 +157,8 @@ public class TappedOutImporter extends AbstractDeckImporter
         conn.setDoOutput(true);
         conn.getOutputStream().write(postData);
 
-//        Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-//
+        Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+
 //        for (int c; (c = in.read()) >= 0; )
 //            System.out.print((char) c);
 
@@ -150,22 +173,12 @@ public class TappedOutImporter extends AbstractDeckImporter
             String value = httpCookie.getValue();
 
             if(name.contains("tapped"))
-                return value;
+            {
+                loginCookie = value;
+                return loginCookie;
+            }
         }
 
         throw new IOException("Was not able to retrieve login cookie");
     }
-
-
-//    private static class CardDto
-//    {
-//        String specificCardName;
-//        List<CardDtoDetails> details;
-//    }
-//
-//    private static class CardDtoDetails
-//    {
-//        String board;
-//        int quantity;
-//    }
 }
