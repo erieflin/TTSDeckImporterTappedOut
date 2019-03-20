@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import core.Constants;
 import core.Util;
 import importObjects.Card;
+import importObjects.CardSetup;
 import importObjects.DoubleFacedCard;
 
 public class Scryfall extends AbstractCardImporter
@@ -19,6 +20,7 @@ public class Scryfall extends AbstractCardImporter
         return Constants.SCRYFALL_PRECEDE_QUERY+cardName;
     }
 
+    //Old reference code for development purposes
     private static JsonObject query(String cardName, String setName)
     {
         String url = ScryfallQueryURL(cardName);
@@ -30,6 +32,7 @@ public class Scryfall extends AbstractCardImporter
         return result;
     }
 
+    //Old reference code for development purposes
     private static JsonObject checkSet(JsonArray cards, String targetSet)
     {
         JsonArray temp;
@@ -55,14 +58,7 @@ public class Scryfall extends AbstractCardImporter
     }
 
     @Override
-    protected Card loadImage(String cardName)
-    {
-        //TODO implement
-        return null;
-    }
-
-    @Override
-    protected DoubleFacedCard loadImage(String frontSideName, String backSideName)
+    public Card loadCard(CardSetup setup)
     {
         //TODO implement
         return null;

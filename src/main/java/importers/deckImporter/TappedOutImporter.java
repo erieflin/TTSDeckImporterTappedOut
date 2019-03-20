@@ -1,11 +1,11 @@
 package importers.deckImporter;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.internal.LinkedTreeMap;
 import core.Constants;
 import core.Credentials;
 import importObjects.Card;
+import importObjects.CardSetup;
 import importers.cardImporter.AbstractCardImporter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -31,8 +31,6 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
     @Override
     protected List<Card> importDeckURL(URL deckURL) throws IOException
     {
-        //http://tappedout.net/api/collection/collection:deck/mayael-the-anima-irl/
-
         String url = deckURL.getPath();
         if(url.endsWith("/"))
             url = url.substring(0, url.length() - 1);
@@ -62,26 +60,29 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
             String set = m.find() ? m.group(1).trim() : null;
 
             m = Pattern.compile("(\\*.*?\\*)").matcher(cardNameWithExtras);
-            List<Card.CardModifier> modifiers = new ArrayList<>();
+            List<CardSetup.Tag> modifiers = new ArrayList<>();
             while (m.find())
             {
                 String modifier = m.group(1).trim();
 
                 if(modifier.equalsIgnoreCase("*F*"))
-                    modifiers.add(Card.CardModifier.FOIL);
+                    modifiers.add(CardSetup.Tag.FOIL);
                 else if(modifier.equalsIgnoreCase("*CMDR*"))
-                    modifiers.add(Card.CardModifier.COMMANDER);
-                else if(modifier.contains("*A:"))
-                    modifiers.add(Card.CardModifier.ALTER);
+                    modifiers.add(CardSetup.Tag.COMMANDER);
+                else if(modifier.toUpperCase().contains("*A:"))
+                    modifiers.add(CardSetup.Tag.ALTER);
             }
 
             LinkedTreeMap<String, Object> map = (LinkedTreeMap<String, Object>)(readDto.inventory.get(i).get(1));
-            Card.Board board = Card.Board.valueOf((String)map.get(Constants.TAPPED_OUT_BOARD_KEY));
+            CardSetup.Board board = CardSetup.Board.valueOf((String)map.get(Constants.TAPPED_OUT_BOARD_KEY));
             int quantity = (int)((double)map.get(Constants.TAPPED_OUT_QTY_KEY));
 
-            deckList.add(new Card.CardBuilder(cardName, this.cardImporter).set(set).quantity(quantity).modifiers(modifiers).board(board).construct());
+            CardSetup cardSetup = new CardSetup.CardSetupBuilder(cardName).set(set).qty(quantity).modifiers(modifiers).board(board).build();
+
+            deckList.add(this.cardImporter.loadCard(cardSetup));
         }
 
+        //TODO redo what this returns - should return a full deck by parsing what type of deck this is and instantiating accordingly
         return deckList;
     }
 
@@ -93,11 +94,13 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
         String featured_card;
         String dateUpdated;
         String score;
-        List<List<Object>> inventory;
+
         //[0] = String cardname thingy
         //[1] = LinkedTreeMap, with the following:
             //key b = board ("main" usually)
             //key qty = double of quantity (1.0 usually)
+        List<List<Object>> inventory;
+
         String resource_uri;
         String thumbnail_url;
         String slug;
@@ -116,7 +119,7 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         CookieHandler.setDefault(cookieManager);
 
-        Document doc = Jsoup.connect("https://tappedout.net/accounts/login/?next=/").get();
+        Document doc = Jsoup.connect("https://tappedout.net/accounts/login/?next=/").get(); //TODO look into making this a constant
 
         String csrfmiddlewaretoken = doc.select("input[name=csrfmiddlewaretoken]").first().val();
 
@@ -142,7 +145,7 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
         if(cfduid == "" || csrftoken == "")
             throw new IllegalStateException("Couldn't get both cfduid and csrftoken");
 
-        URL request = new URL("https://tappedout.net/accounts/login/");
+        URL request = new URL("https://tappedout.net/accounts/login/"); //TODO look into making this a constant
 
         HttpsURLConnection conn = (HttpsURLConnection)request.openConnection();
 
