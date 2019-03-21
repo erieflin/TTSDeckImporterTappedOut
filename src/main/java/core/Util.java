@@ -26,5 +26,8 @@ public class Util
         }
     }
 
-
+    public static boolean NullOrWhitespace(String s)
+    {
+        return s == null || s.trim().equalsIgnoreCase("");
+    }
 }

@@ -10,6 +10,13 @@ import importObjects.DoubleFacedCard;
 
 public class Scryfall extends AbstractCardImporter
 {
+    public static final String SCRYFALL_URL = "https://api.scryfall.com/";
+    public static final String SCRYFALL_CARD = SCRYFALL_URL + "cards/";
+    public static final String SCRYFALL_CARD_NAMED = SCRYFALL_CARD + "named";
+    public static final String SCRYFALL_PRECEDE_QUERY = SCRYFALL_CARD_NAMED + "?exact=";
+    public static final String SCRYFALL_CARDS_ID = "cards";
+    public static final String SCRYFALL_PRINTING_ID = "printings";
+
     public Scryfall()
     {
         super();
@@ -17,49 +24,51 @@ public class Scryfall extends AbstractCardImporter
 
     private static String ScryfallQueryURL(String cardName)
     {
-        return Constants.SCRYFALL_PRECEDE_QUERY+cardName;
-    }
-
-    //Old reference code for development purposes
-    private static JsonObject query(String cardName, String setName)
-    {
-        String url = ScryfallQueryURL(cardName);
-        JsonObject result =  Util.getJsonFromURL(url);
-        if(result.isJsonArray()){
-            JsonArray cards = result.get(Constants.SCRYFALL_CARDS_ID).getAsJsonArray();
-            result = checkSet(cards, setName);
-        }
-        return result;
-    }
-
-    //Old reference code for development purposes
-    private static JsonObject checkSet(JsonArray cards, String targetSet)
-    {
-        JsonArray temp;
-
-        if(cards.size()==0){
-            return null;
-        }
-
-        if(targetSet.trim().equalsIgnoreCase("")){
-            return cards.get(0).getAsJsonObject();
-        }
-
-        for(int i = 0; i < cards.size(); i++) {
-            temp = cards.get(i).getAsJsonObject().get(Constants.SCRYFALL_PRINTING_ID).getAsJsonArray();
-            for(int j = 0; j < temp.size(); j++) {
-                String set = temp.get(j).getAsString();
-                if(set.equalsIgnoreCase(targetSet)){
-                    return cards.get(i).getAsJsonObject();
-                }
-            }
-        }
-        return cards.get(0).getAsJsonObject();
+        return SCRYFALL_PRECEDE_QUERY+cardName;
     }
 
     @Override
-    public Card loadCard(CardSetup setup)
+    public Card loadCard(CardSetup parameters)
     {
+        String url = ScryfallQueryURL(parameters.cardName);
+        JsonObject result = Util.getJsonFromURL(url);
+        if (result.isJsonArray())
+        {
+            //Need to select a single version based on the set
+
+            JsonArray cards = result.get(SCRYFALL_CARDS_ID).getAsJsonArray();
+
+            if (cards.size() == 0)
+            {
+                result = null;
+            } else if (Util.NullOrWhitespace(parameters.set))
+            {
+                result = cards.get(0).getAsJsonObject();
+            } else
+            {
+                JsonArray temp;
+                for (int i = 0; i < cards.size(); i++)
+                {
+                    temp = cards.get(i).getAsJsonObject().get(SCRYFALL_PRINTING_ID).getAsJsonArray();
+                    for (int j = 0; j < temp.size(); j++)
+                    {
+                        String set = temp.get(j).getAsString();
+                        if (set.equalsIgnoreCase(parameters.set))
+                        {
+                            result = cards.get(i).getAsJsonObject();
+                        }
+                    }
+                }
+                result = cards.get(0).getAsJsonObject();
+            }
+        }
+
+        //TODO parse result into a Card, also need to load image (which might need it's own class setup)
+        if (result == null)
+        {
+            return null;
+        }
+
         //TODO implement
         return null;
     }

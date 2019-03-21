@@ -2,14 +2,14 @@ package importers.deckImporter;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
-import core.Constants;
 import core.Credentials;
 import importObjects.Card;
+import importObjects.CardDetails;
 import importObjects.CardSetup;
 import importers.cardImporter.AbstractCardImporter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-
+import importObjects.CardDetails.*;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.*;
@@ -21,6 +21,10 @@ import java.util.regex.Pattern;
 
 public class TappedOutImporter extends AbstractUrlDeckImporter
 {
+    public static final String TAPPED_OUT_API_URL = "http://tappedout.net/api/collection/collection:deck/";
+    public static final String TAPPED_OUT_BOARD_KEY = "b";
+    public static final String TAPPED_OUT_QTY_KEY = "qty";
+
     private String loginCookie;
 
     public TappedOutImporter(Credentials tappedOutCredentials, AbstractCardImporter cardImportMethod, URL deckURL) throws IOException
@@ -38,7 +42,7 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
         String[] arr = url.split("/");
         String urlDeckName = arr[arr.length - 1];
 
-        URL request = new URL(Constants.TAPPED_OUT_API_URL + urlDeckName);
+        URL request = new URL(TAPPED_OUT_API_URL + urlDeckName);
 
         URLConnection urlConnection = request.openConnection();
         urlConnection.setRequestProperty("Cookie", "tapped="+getLoginCookie());
@@ -60,26 +64,28 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
             String set = m.find() ? m.group(1).trim() : null;
 
             m = Pattern.compile("(\\*.*?\\*)").matcher(cardNameWithExtras);
-            List<CardSetup.Tag> modifiers = new ArrayList<>();
+            List<Tag> modifiers = new ArrayList<>();
             while (m.find())
             {
                 String modifier = m.group(1).trim();
 
                 if(modifier.equalsIgnoreCase("*F*"))
-                    modifiers.add(CardSetup.Tag.FOIL);
+                    modifiers.add(Tag.FOIL);
                 else if(modifier.equalsIgnoreCase("*CMDR*"))
-                    modifiers.add(CardSetup.Tag.COMMANDER);
+                    modifiers.add(Tag.COMMANDER);
                 else if(modifier.toUpperCase().contains("*A:"))
-                    modifiers.add(CardSetup.Tag.ALTER);
+                    modifiers.add(Tag.ALTER);
             }
 
             LinkedTreeMap<String, Object> map = (LinkedTreeMap<String, Object>)(readDto.inventory.get(i).get(1));
-            CardSetup.Board board = CardSetup.Board.valueOf((String)map.get(Constants.TAPPED_OUT_BOARD_KEY));
-            int quantity = (int)((double)map.get(Constants.TAPPED_OUT_QTY_KEY));
+            Board board = Board.valueOf((String)map.get(TAPPED_OUT_BOARD_KEY));
+            int quantity = (int)((double)map.get(TAPPED_OUT_QTY_KEY));
 
             CardSetup cardSetup = new CardSetup.CardSetupBuilder(cardName).set(set).qty(quantity).modifiers(modifiers).board(board).build();
+            Card card = this.cardImporter.loadCard(cardSetup);
 
-            deckList.add(this.cardImporter.loadCard(cardSetup));
+            if(card != null)
+                deckList.add(card);
         }
 
         //TODO redo what this returns - should return a full deck by parsing what type of deck this is and instantiating accordingly

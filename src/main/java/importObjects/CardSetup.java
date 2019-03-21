@@ -1,15 +1,18 @@
 package importObjects;
 
+import core.Util;
+
 import java.util.ArrayList;
 import java.util.List;
+import importObjects.CardDetails.*;
 
 public class CardSetup
 {
-    private String cardName;
-    private String set;
-    private int qty;
-    private Board board;
-    private List<Tag> modifiers;
+    public final String cardName;
+    public final String set;
+    public final int qty;
+    public final Board board;
+    public final List<Tag> modifiers;
 
     private CardSetup(CardSetupBuilder builder)
     {
@@ -33,14 +36,21 @@ public class CardSetup
 
         public CardSetupBuilder(String cardName)
         {
-            this.cardName = cardName;
+            if(Util.NullOrWhitespace(cardName))
+                throw new IllegalArgumentException("Card name cannot be null or blank");
+
+            this.cardName = cardName.trim();
             this.modifiers = new ArrayList<>();
             this.qty = 1;   //Default quantity
         }
 
         public CardSetupBuilder set(String set)
         {
-            this.set = set;
+            if(Util.NullOrWhitespace(set))
+                this.set = null;
+            else
+                this.set = set.trim();
+
             return this;
         }
 
@@ -77,17 +87,11 @@ public class CardSetup
 
         public CardSetup build()
         {
+            //NOTE: Alters currently are only marked as being one, and are not in any way properly pulled.  May become a future effort
+            if(modifiers.contains(Tag.ALTER))
+                this.set = null;
+
             return new CardSetup(this);
         }
-    }
-
-    public enum Tag
-    {
-        FOIL, ALTER, COMMANDER
-    }
-
-    public enum Board
-    {
-        MAIN, SIDEBOARD, MAYBEBOARD
     }
 }
