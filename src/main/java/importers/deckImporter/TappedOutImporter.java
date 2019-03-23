@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import core.Credentials;
 import importObjects.Card;
-import importObjects.CardDetails;
 import importObjects.CardSetup;
 import importers.cardImporter.AbstractCardImporter;
 import org.jsoup.Jsoup;

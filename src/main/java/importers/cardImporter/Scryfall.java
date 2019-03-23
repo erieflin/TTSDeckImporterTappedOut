@@ -28,7 +28,7 @@ public class Scryfall extends AbstractCardImporter
     }
 
     @Override
-    public Card loadCard(CardSetup parameters)
+    protected Card loadCardFromImporter(CardSetup parameters)
     {
         String url = ScryfallQueryURL(parameters.cardName);
         JsonObject result = Util.getJsonFromURL(url);
@@ -63,7 +63,7 @@ public class Scryfall extends AbstractCardImporter
             }
         }
 
-        //TODO parse result into a Card, also need to load image (which might need it's own class setup)
+        //TODO parse result into a Card OR DoubleFacedCard, also need to load image (which might need it's own class setup)
         if (result == null)
         {
             return null;

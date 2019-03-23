@@ -6,9 +6,9 @@ import java.util.List;
 
 public class DoubleFacedCard extends Card
 {
-//    protected DoubleFacedCard(String cardName, AbstractCardImporter cardImporter, String set, int quantity, Board board, List<CardModifier> modifiers)
-//    {
-//        super(cardName, cardImporter, set, quantity, board, modifiers);
-//        //TODO implement
-//    }
+    protected DoubleFacedCard(CardSetup params)
+    {
+        super(params);
+        //TODO implement
+    }
 }

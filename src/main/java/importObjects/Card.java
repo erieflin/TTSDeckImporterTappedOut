@@ -12,13 +12,12 @@ public class Card
     public final Board board;
     public final List<Tag> modifiers;   //TODO if this stays final it should become an array - same for the other one in CardSetup
 
-    protected Card(String cardName, String set, int quantity, Board board, List<Tag> modifiers)
+    protected Card(CardSetup params)
     {
-        this.cardName = cardName;
-        this.set = set;
-        this.quantity = quantity;
-        this.board = board;
-        this.modifiers = modifiers;
-
+        this.cardName = params.cardName;
+        this.set = params.set;
+        this.quantity = params.qty;
+        this.board = params.board;
+        this.modifiers = params.modifiers;
     }
 }
