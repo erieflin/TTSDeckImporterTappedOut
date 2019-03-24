@@ -8,12 +8,12 @@ import importObjects.CardDetails.*;
 public class Card
 {
     //TODO these might change to something other than final
-    public final String cardName;
-    public final String set;
-    public final int quantity;
-    public final Board board;
-    public final Tag[] modifiers;
-    public final File cardImage;
+    private String cardName;
+    private String set;
+    private int quantity;
+    private Board board;
+    private Tag[] modifiers;
+    private File cardImage;
 
     protected Card(CardParams params, File cardImage)
     {
@@ -24,4 +24,29 @@ public class Card
         this.modifiers = params.modifiers;
         this.cardImage = cardImage;
     }
+
+    public String getCardName() {
+        return cardName;
+    }
+
+    public String getSet() {
+        return set;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public Tag[] getModifiers() {
+        return modifiers;
+    }
+
+    public File getCardImage() {
+        return cardImage;
+    }
+
 }

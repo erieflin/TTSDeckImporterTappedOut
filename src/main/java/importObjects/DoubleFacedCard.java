@@ -4,7 +4,8 @@ import java.io.File;
 
 public class DoubleFacedCard extends Card
 {
-    private final File backCardImage;
+
+    private File backCardImage;
 
     public DoubleFacedCard(CardParams params, File frontCardImage, File backCardImage)
     {
@@ -12,5 +13,13 @@ public class DoubleFacedCard extends Card
 
         this.backCardImage = backCardImage;
         //TODO implement
+    }
+
+    public File getBackCardImage() {
+        return backCardImage;
+    }
+
+    public void setBackCardImage(File backCardImage) {
+        this.backCardImage = backCardImage;
     }
 }
