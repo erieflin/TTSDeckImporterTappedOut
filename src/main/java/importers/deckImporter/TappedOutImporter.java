@@ -20,10 +20,10 @@ import java.util.regex.Pattern;
 
 public class TappedOutImporter extends AbstractUrlDeckImporter
 {
-    public static final String TAPPED_OUT_API_URL = "http://tappedout.net/api/collection/collection:deck/";
-    public static final String TAPPED_OUT_BOARD_KEY = "b";
-    public static final String TAPPED_OUT_QTY_KEY = "qty";
-
+    private static final String TAPPED_OUT_API_URL = "http://tappedout.net/api/collection/collection:deck/";
+    private static final String TAPPED_OUT_BOARD_KEY = "b";
+    private static final String TAPPED_OUT_QTY_KEY = "qty";
+    
     private String loginCookie;
 
     public TappedOutImporter(Credentials tappedOutCredentials, AbstractCardImporter cardImportMethod, URL deckURL) throws IOException
