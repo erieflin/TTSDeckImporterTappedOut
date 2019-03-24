@@ -2,11 +2,9 @@ package importers.cardImporter;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import core.Constants;
 import core.Util;
 import importObjects.Card;
-import importObjects.CardSetup;
-import importObjects.DoubleFacedCard;
+import importObjects.CardParams;
 
 public class Scryfall extends AbstractCardImporter
 {
@@ -28,7 +26,7 @@ public class Scryfall extends AbstractCardImporter
     }
 
     @Override
-    protected Card loadCardFromImporter(CardSetup parameters)
+    protected Card loadCardFromImporter(CardParams parameters)
     {
         String url = ScryfallQueryURL(parameters.cardName);
         JsonObject result = Util.getJsonFromURL(url);

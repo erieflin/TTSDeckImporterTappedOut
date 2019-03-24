@@ -1,14 +1,16 @@
 package importObjects;
 
-import importers.cardImporter.AbstractCardImporter;
-
-import java.util.List;
+import java.io.File;
 
 public class DoubleFacedCard extends Card
 {
-    protected DoubleFacedCard(CardSetup params)
+    private final File backCardImage;
+
+    public DoubleFacedCard(CardParams params, File frontCardImage, File backCardImage)
     {
-        super(params);
+        super(params, frontCardImage);
+
+        this.backCardImage = backCardImage;
         //TODO implement
     }
 }

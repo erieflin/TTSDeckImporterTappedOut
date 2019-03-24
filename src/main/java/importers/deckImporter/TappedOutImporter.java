@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import core.Credentials;
 import importObjects.Card;
-import importObjects.CardSetup;
+import importObjects.CardParams;
 import importers.cardImporter.AbstractCardImporter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -80,8 +80,8 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
             Board board = Board.valueOf((String)map.get(TAPPED_OUT_BOARD_KEY));
             int quantity = (int)((double)map.get(TAPPED_OUT_QTY_KEY));
 
-            CardSetup cardSetup = new CardSetup.CardSetupBuilder(cardName).set(set).qty(quantity).modifiers(modifiers).board(board).build();
-            Card card = this.cardImporter.loadCard(cardSetup);
+            CardParams cardParams = new CardParams.CardParamsBuilder(cardName).set(set).qty(quantity).modifiers(modifiers).board(board).build();
+            Card card = this.cardImporter.loadCard(cardParams);
 
             if(card != null)
                 deckList.add(card);

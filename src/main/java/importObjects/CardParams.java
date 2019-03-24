@@ -6,27 +6,27 @@ import java.util.ArrayList;
 import java.util.List;
 import importObjects.CardDetails.*;
 
-public class CardSetup
+public class CardParams
 {
     public final String cardName;
     public final String set;
     public final int qty;
     public final Board board;
-    public final List<Tag> modifiers;
+    public final Tag[] modifiers;
 
-    private CardSetup(CardSetupBuilder builder)
+    private CardParams(CardParamsBuilder builder)
     {
         if(builder == null)
-            throw new NullPointerException("CardSetupBuilder cannot be null for CardSetup");
+            throw new NullPointerException("CardParamsBuilder cannot be null for CardParams");
 
         this.cardName = builder.cardName;
         this.set = builder.set;
         this.qty = builder.qty;
         this.board = builder.board;
-        this.modifiers = builder.modifiers;
+        this.modifiers = builder.modifiers.toArray(new Tag[0]);
     }
 
-    public static class CardSetupBuilder
+    public static class CardParamsBuilder
     {
         private String cardName;
         private String set;
@@ -34,7 +34,7 @@ public class CardSetup
         private Board board;
         private List<Tag> modifiers;
 
-        public CardSetupBuilder(String cardName)
+        public CardParamsBuilder(String cardName)   //TODO parse the name for Double-sided cards or create a cardname class to do so
         {
             if(Util.NullOrWhitespace(cardName))
                 throw new IllegalArgumentException("Card name cannot be null or blank");
@@ -44,7 +44,7 @@ public class CardSetup
             this.qty = 1;   //Default quantity
         }
 
-        public CardSetupBuilder set(String set)
+        public CardParamsBuilder set(String set)    //TODO change to set acronym, make a parser to get the correct associated set?
         {
             if(Util.NullOrWhitespace(set))
                 this.set = null;
@@ -54,7 +54,7 @@ public class CardSetup
             return this;
         }
 
-        public CardSetupBuilder qty(int quantity)
+        public CardParamsBuilder qty(int quantity)
         {
             //Maximum number of cards allowed left to specific Deck constructors (for instance, Standard has a max quantity of 4, EDH 1, and Draft has no max quantity.)
             if(qty >= 1)
@@ -64,34 +64,34 @@ public class CardSetup
             return this;
         }
 
-        public CardSetupBuilder board(Board board)
+        public CardParamsBuilder board(Board board)
         {
             this.board = board;
             return this;
         }
 
-        public CardSetupBuilder modifier(Tag tag)
+        public CardParamsBuilder modifier(Tag tag)
         {
             modifiers.add(tag);
             return this;
         }
 
-        public CardSetupBuilder modifiers(List<Tag> modifiers)
+        public CardParamsBuilder modifiers(List<Tag> modifiers)
         {
             if(modifiers == null)
-                throw new NullPointerException("List of modifier Tags for CardSetupBuilder cannot be null");
+                throw new NullPointerException("List of modifier Tags for CardParamsBuilder cannot be null");
 
             this.modifiers = modifiers;
             return this;
         }
 
-        public CardSetup build()
+        public CardParams build()
         {
             //NOTE: Alters currently are only marked as being one, and are not in any way properly pulled.  May become a future effort
             if(modifiers.contains(Tag.ALTER))
                 this.set = null;
 
-            return new CardSetup(this);
+            return new CardParams(this);
         }
     }
 }
