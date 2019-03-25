@@ -14,6 +14,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.Buffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
 public class ImageUtils {
@@ -140,8 +141,8 @@ public class ImageUtils {
 		jpgWriteParam.setCompressionQuality((float)compressionLevel);
 		try {
 			File f = new File(dest);
-			File dir = new File(f.getParent());
-			if(!dir.exists()){
+			File dir = f.getParentFile();
+			if(dir != null && !dir.exists()){
 				dir.mkdirs();
 			}
 			if(!f.exists()){
@@ -209,7 +210,7 @@ public class ImageUtils {
 		
 		for(int i = 0; i < deckAmt; i++){
 			StitchedImage stitchedImg = new StitchedImage();
-			stitchedImg.setImagePath(deck.getDeckFolder().getPath() + i + ".jpg");
+			stitchedImg.setImagePath(deck.getDeckFolder().getPath() + File.separator + i + ".jpg");
 			//deck.deckLinks[i] = JsonUtils.postImage(Config.hostUrlPrefix + Config.publicDeckDir + deck.deckId + i + ".jpg");
 			
 //			if(deck instanceof DraftDeck){
@@ -227,6 +228,7 @@ public class ImageUtils {
 //			if(deck.hiddenImage != null){
 //				gs[i].drawImage(deck.hiddenImage, cardWidth * 9, cardHeight * 6, cardWidth, cardHeight, null);
 //			}
+            stitches.add(stitchedImg);
 		}
 		
 		int cardCount = 0;
@@ -240,13 +242,13 @@ public class ImageUtils {
 	
 				int realX = gridX * cardWidth + cardOffsetX;
 				int realY = gridY * cardHeight + cardOffsetY;
-				try{
-					
-					File f = card.getCardImage();
-					File dir = new File(f.getParent());
-						if(!dir.exists()){
-							dir.mkdirs();
-						}
+				try {
+
+                    File f = card.getCardImage();
+                    File dir = f.getParentFile();
+                    if (dir != null &&!dir.exists()) {
+                            dir.mkdirs();
+                    }
 					BufferedImage cardImage = ImageIO.read(f);
 					gs[deckNum].drawImage(cardImage, realX, realY, cardWidth - cardOffsetX*2, cardHeight - cardOffsetY*2, null);
 				}catch(Exception e){

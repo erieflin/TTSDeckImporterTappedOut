@@ -15,7 +15,7 @@ public class Card
     private Tag[] modifiers;
     private File cardImage;
 
-    protected Card(CardParams params, File cardImage)
+    public Card(CardParams params, File cardImage)
     {
         this.cardName = params.cardName;
         this.set = params.set;

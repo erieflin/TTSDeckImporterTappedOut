@@ -25,14 +25,15 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
     public static final String TAPPED_OUT_QTY_KEY = "qty";
 
     private String loginCookie;
-
+    protected Credentials credentials;
     public TappedOutImporter(Credentials tappedOutCredentials, AbstractCardImporter cardImportMethod, URL deckURL) throws IOException
     {
-        super(tappedOutCredentials, cardImportMethod, deckURL);
+        super(cardImportMethod, deckURL);
+        this.credentials = tappedOutCredentials;
     }
 
     @Override
-    protected List<Card> importDeckURL(URL deckURL) throws IOException
+    public List<Card> importDeck() throws IOException
     {
         String url = deckURL.getPath();
         if(url.endsWith("/"))

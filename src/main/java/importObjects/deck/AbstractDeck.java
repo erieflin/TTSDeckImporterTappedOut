@@ -11,21 +11,22 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 
 public abstract class AbstractDeck
 {
     private String name;
     private AbstractDeckImporter deckImporter;
-    private ArrayList<Card> cardList;
-    private ArrayList<Token> tokenList;
+    private List<Card> cardList;
+    private List<Token> tokenList;
     private URL sleeveImageUrl;
     private static final String DECKFOLDER = "DeckOutput";
     protected AbstractDeck(AbstractDeckImporter importer, URL sleeveUrl)
     {
 //        name = importer.deckName; //TODO fill in
         deckImporter = importer;
-        cardList = new ArrayList<>();
-        tokenList = new ArrayList<>();
+        cardList = new ArrayList<Card>();
+        tokenList = new ArrayList<Token>();
         sleeveImageUrl = sleeveUrl;
     }
 
@@ -44,21 +45,36 @@ public abstract class AbstractDeck
     public void importDeck()
     {
         //TODO implement
+        try {
+           this.cardList = deckImporter.importDeck();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return;
     }
 
-    public ArrayList<Card> getCardList() {
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+
+    public List<Card> getCardList() {
         return cardList;
     }
 
-    public void setCardList(ArrayList<Card> cardList) {
+    public void setCardList(List<Card> cardList) {
         this.cardList = cardList;
     }
 
-    public ArrayList<Token> getTokenList() {
+    public List<Token> getTokenList() {
         return tokenList;
     }
 
-    public void setTokenList(ArrayList<Token> tokenList) {
+    public void setTokenList(List<Token> tokenList) {
         this.tokenList = tokenList;
     }
 

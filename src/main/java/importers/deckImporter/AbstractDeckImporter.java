@@ -13,11 +13,13 @@ public abstract class AbstractDeckImporter
 {
     protected AbstractCardImporter cardImporter;
     protected AbstractDeck deck;
-    protected Credentials credentials;
 
-    protected AbstractDeckImporter(Credentials credentials, AbstractCardImporter cardImportMethod)
+
+    protected AbstractDeckImporter(AbstractCardImporter cardImportMethod)
     {
         cardImporter = cardImportMethod;
-        this.credentials = credentials;
     }
+
+    public abstract List<Card> importDeck() throws Exception;
+
 }
