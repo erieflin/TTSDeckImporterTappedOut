@@ -9,6 +9,6 @@ public class CardDetails
 
     public enum Board
     {
-        MAIN, SIDEBOARD, MAYBEBOARD
+        MAIN, SIDEBOARD, MAYBEBOARD, ACQUIRE
     }
 }

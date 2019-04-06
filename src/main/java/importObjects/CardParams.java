@@ -57,7 +57,7 @@ public class CardParams
         public CardParamsBuilder qty(int quantity)
         {
             //Maximum number of cards allowed left to specific Deck constructors (for instance, Standard has a max quantity of 4, EDH 1, and Draft has no max quantity.)
-            if(qty >= 1)
+            if(qty < 1)
                 throw new IllegalArgumentException("Quantity must be 1 or more");
 
             this.qty = quantity;

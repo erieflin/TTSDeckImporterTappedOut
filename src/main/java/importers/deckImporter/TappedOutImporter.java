@@ -57,7 +57,7 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
         {
             String cardNameWithExtras = (String)(readDto.inventory.get(i).get(0));
 
-            Matcher m = Pattern.compile("(^.*?)(?=(\\*|\\())").matcher(cardNameWithExtras);
+            Matcher m = Pattern.compile("(^.*?)(?=(\\*|\\(|$))").matcher(cardNameWithExtras);
             String cardName = m.find() ? m.group(1).trim() : null;
 
             m = Pattern.compile("(\\(.*\\))").matcher(cardNameWithExtras);
@@ -78,7 +78,7 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
             }
 
             LinkedTreeMap<String, Object> map = (LinkedTreeMap<String, Object>)(readDto.inventory.get(i).get(1));
-            Board board = Board.valueOf((String)map.get(TAPPED_OUT_BOARD_KEY));
+            Board board = Board.valueOf(((String)map.get(TAPPED_OUT_BOARD_KEY)).toUpperCase());
             int quantity = (int)((double)map.get(TAPPED_OUT_QTY_KEY));
 
             CardParams cardParams = new CardParams.CardParamsBuilder(cardName).set(set).qty(quantity).modifiers(modifiers).board(board).build();

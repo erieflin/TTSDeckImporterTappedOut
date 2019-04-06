@@ -18,8 +18,8 @@ public class Main
 
         String user = args[0];
         String pass = args[1];
-
-        String someTappedOutUrl = "http://tappedout.net/mtg-decks/testing-area/";
+        String someTappedOutUrl = "https://tappedout.net/mtg-decks/gliristofacts/";
+        //String someTappedOutUrl = "http://tappedout.net/mtg-decks/testing-area/";
         //"http://tappedout.net/mtg-decks/mayael-the-anima-irl/";
 
         URL url = new URL(someTappedOutUrl);
@@ -27,6 +27,7 @@ public class Main
         TappedOutImporter importer = new TappedOutImporter(new Credentials(user, pass), new Scryfall(), url);
 
         EDH deck = new EDH(importer);
+        deck.importDeck();
     }
 }
 
