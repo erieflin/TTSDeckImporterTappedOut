@@ -11,7 +11,10 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+
 cardImages/
+DeckOutput/
+
 # Generated files
 .idea/**/contentModel.xml
 
