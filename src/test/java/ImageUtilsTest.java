@@ -1,5 +1,3 @@
-package test.images;
-
 import com.google.gson.JsonObject;
 import images.ImageUtils;
 import importObjects.Card;
@@ -35,8 +33,7 @@ public class ImageUtilsTest {
         ImageUtils.StitchDeck(deck);
     }
 
-    private static final String TESTRESOURCEDIR = "src"+ File.separator + "main" + File.separator + "java" + File.separator
-    + "test" + File.separator + "resources" + File.separator;
+    private static final String TESTRESOURCEDIR = "src"+ File.separator + "test" + File.separator + "resources" + File.separator;
 
     private AbstractDeck buildDeck(){
         EDH edh = null;
