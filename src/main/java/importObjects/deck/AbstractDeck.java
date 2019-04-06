@@ -96,7 +96,7 @@ public abstract class AbstractDeck
            deckFolder.mkdirs();
        }
 
-       File currentDeckFolder = new File(deckFolder + name);
+       File currentDeckFolder = new File(deckFolder + File.separator + name);
        currentDeckFolder.mkdirs();
 
        return  currentDeckFolder;
