@@ -92,13 +92,18 @@ public class Scryfall extends AbstractCardImporter
             }
 
             CardFaceIODTO frontCard = cardFaceIoDetails.get(0);
-            if(!downloadCardImageToFile(frontCard.getDestFile(),frontCard.getUri())){
-                return null;
+            if(!frontCard.getDestFile().exists()) {
+                if (!downloadCardImageToFile(frontCard.getDestFile(), frontCard.getUri())) {
+                    return null;
+                }
             }
 
+
             CardFaceIODTO backCard= cardFaceIoDetails.get(1);
-            if(!downloadCardImageToFile(frontCard.getDestFile(),frontCard.getUri())){
-                return null;
+            if(!backCard.getDestFile().exists()) {
+                if (!downloadCardImageToFile(frontCard.getDestFile(), frontCard.getUri())) {
+                    return null;
+                }
             }
 
             importedCard = new DoubleFacedCard(parameters, frontCard.getDestFile(), backCard.getDestFile());
@@ -114,9 +119,10 @@ public class Scryfall extends AbstractCardImporter
             }
 
             File image = getFileForCard(scryfallCard.getName(), scryfallCard.getSet());
-
-            if(!downloadCardImageToFile(image,uri)){
-                return null;
+            if(!image.exists()) {
+                if (!downloadCardImageToFile(image, uri)) {
+                    return null;
+                }
             }
 
             importedCard = new Card(parameters, image);

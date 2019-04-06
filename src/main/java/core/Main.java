@@ -1,5 +1,6 @@
 package core;
 
+import images.ImageUtils;
 import importObjects.deck.constructed.EDH;
 import importers.cardImporter.Scryfall;
 import importers.deckImporter.TappedOutImporter;
@@ -27,7 +28,9 @@ public class Main
         TappedOutImporter importer = new TappedOutImporter(new Credentials(user, pass), new Scryfall(), url);
 
         EDH deck = new EDH(importer);
+        deck.setName("glissaTestDeck");
         deck.importDeck();
+        ImageUtils.StitchDeck(deck);
     }
 }
 
