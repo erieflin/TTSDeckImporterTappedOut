@@ -11,7 +11,7 @@ public class PageAdapter extends TypeAdapter<ImagePage> {
     @Override
     public void write(JsonWriter out, ImagePage value) throws IOException {
         out.beginObject();
-        out.name("FaceURL").value(value.getFaceURL());
+        out.name("FaceURL").value(value.getFaceUrl());
         out.name("BackUrl").value(value.getBackUrl());
         out.endObject();
     }
@@ -23,7 +23,7 @@ public class PageAdapter extends TypeAdapter<ImagePage> {
         in.beginObject();
         switch (in.nextName()) {
             case "FaceURL":
-                page.setFaceURL(in.nextString());
+                page.setFaceUrl(in.nextString());
                 break;
             case "BackURL":
                 page.setBackUrl(in.nextString());
