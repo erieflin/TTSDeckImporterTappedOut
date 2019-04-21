@@ -3,6 +3,7 @@ package images;
 import core.Util;
 import importObjects.Card;
 import importObjects.CardParams;
+import importObjects.DoubleFacedCard;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +41,12 @@ public class ImageCache
     private final Connection connection;;
     private final PreparedStatement queryCardWithoutSet;
     private final PreparedStatement queryCardWithSet;
+    private final PreparedStatement queryImageSource;
+    private final PreparedStatement queryFile;
+    private final PreparedStatement insertImageSource;
+    private final PreparedStatement insertFile;
+    private final PreparedStatement insertCard;
+    private final PreparedStatement insertDoubleFacedCard;
 
     public static ImageCache getInstance() throws IOException, SQLException
     {
@@ -79,7 +86,7 @@ public class ImageCache
         createTable.execute(MessageFormat.format(
     "CREATE TABLE IF NOT EXISTS {0} (\n" +
             " {1} integer PRIMARY KEY,\n" +
-            " {2} text NOT NULL\n" +
+            " {2} text UNIQUE NOT NULL\n" +
             ");",
             IMAGE_SOURCE_TN, IMAGE_SOURCE_ID, IMAGE_SOURCE_NAME));
 
@@ -105,28 +112,144 @@ public class ImageCache
             ");",
             CARD_TN, CARD_ID, CARD_NAME, CARD_SET_ACRONYM, CARD_IS_DOUBLE_SIDED, CARD_FRONT_IMAGE_FILE, CARD_BACK_IMAGE_FILE, FILE_TN, FILE_ID));
 
-        String queryWithoutSet = MessageFormat.format(
+        String queryCardWithoutSetStr = MessageFormat.format(
     "SELECT *" +
             " FROM {0}" +
             " INNER JOIN {1} as {6} on {6}.{2} = {3}.{4}" +
             " LEFT JOIN {1} as {7} on {7}.{2} = {3}.{5}" +
-            " WHERE {8} = ?",
-    CARD_TN, FILE_TN, FILE_ID, CARD_TN, CARD_FRONT_IMAGE_FILE, CARD_BACK_IMAGE_FILE, FILE_TN + "1", FILE_TN + "2", CARD_NAME);
+            " INNER JOIN {9} on {9}.{10} = {6}.{11}" +
+            " WHERE {8} = ? AND {12} = ?",
+    CARD_TN, FILE_TN, FILE_ID, CARD_TN, CARD_FRONT_IMAGE_FILE, CARD_BACK_IMAGE_FILE, FILE_TN + "1", FILE_TN + "2", CARD_NAME, IMAGE_SOURCE_TN, IMAGE_SOURCE_ID, FILE_IMAGE_SOURCE, IMAGE_SOURCE_NAME);
 
-        String queryWithSet = queryWithoutSet + " AND " + CARD_SET_ACRONYM + " = ?";
+        String queryCardWithSetStr = queryCardWithoutSetStr + " AND " + CARD_SET_ACRONYM + " = ?";
 
-        this.queryCardWithoutSet =  connection.prepareStatement(queryWithoutSet);
-        this.queryCardWithSet =     connection.prepareStatement(queryWithSet);
+        String queryImageSourceStr = MessageFormat.format(
+    "SELECT *" +
+            " FROM {0}" +
+            " WHERE {1} = ?",
+            IMAGE_SOURCE_TN, IMAGE_SOURCE_NAME
+        );
+
+        String queryFileStr = MessageFormat.format(
+    "SELECT *" +
+            " FROM {0}" +
+            " WHERE {1} = ? AND {2} = ?",
+            FILE_TN, FILE_IMAGE_SOURCE, FILE_LOCAL_PATH
+        );
+
+        String insertImageSourceStr = MessageFormat.format(
+    "INSERT OR IGNORE INTO {0}({1})\n" +
+            " VALUES(?)",
+            IMAGE_SOURCE_TN , IMAGE_SOURCE_NAME);
+
+        String insertFileStr = MessageFormat.format(
+    "INSERT INTO {0}({1},{2})\n" +
+            " VALUES(?, ?)",
+            FILE_TN, FILE_IMAGE_SOURCE, FILE_LOCAL_PATH
+        );
+
+        String insertCardStr = MessageFormat.format(
+    "INSERT INTO {0}({1}, {2}, {3}, {4})\n" +
+            " VALUES(?, ?, 0, ?)",
+            CARD_TN, CARD_NAME, CARD_SET_ACRONYM, CARD_IS_DOUBLE_SIDED, CARD_FRONT_IMAGE_FILE
+        );
+
+        String insertDoubleFacedCardStr = MessageFormat.format(
+    "INSERT INTO {0}({1}, {2}, {3}, {4}, {5})\n" +
+            " VALUES(?, ?, 1, ?, ?)",
+            CARD_TN, CARD_NAME, CARD_SET_ACRONYM, CARD_IS_DOUBLE_SIDED, CARD_FRONT_IMAGE_FILE, CARD_BACK_IMAGE_FILE
+        );
+
+        this.queryCardWithoutSet =      connection.prepareStatement(queryCardWithoutSetStr);
+        this.queryCardWithSet =         connection.prepareStatement(queryCardWithSetStr);
+        this.queryImageSource =         connection.prepareStatement(queryImageSourceStr);
+        this.queryFile =                connection.prepareStatement(queryFileStr);
+        this.insertImageSource =        connection.prepareStatement(insertImageSourceStr);
+        this.insertFile =               connection.prepareStatement(insertFileStr);
+        this.insertCard =               connection.prepareStatement(insertCardStr);
+        this.insertDoubleFacedCard =    connection.prepareStatement(insertDoubleFacedCardStr);
     }
 
-    public Card getMatchingCards(CardParams params) throws SQLException
+    public void saveCardtoCache(Card card, String sourceName) throws SQLException
+    {
+        PreparedStatement insertSource = insertImageSource;
+        insertSource.setString(1, sourceName);
+        insertSource.execute();
+
+        PreparedStatement getSource = queryImageSource;
+        getSource.setString(1, sourceName);
+        ResultSet imageSource = getSource.executeQuery();
+
+        if(imageSource.next())
+        {
+            int sourceId = imageSource.getInt(IMAGE_SOURCE_ID);
+
+            int frontCardImage = insertFile(card.getCardImage(), sourceId);
+
+            if(card instanceof DoubleFacedCard) //is double faced
+            {
+                DoubleFacedCard doubleFacedCard = (DoubleFacedCard)card;
+                int backCardImage = insertFile(doubleFacedCard.getBackCardImage(), sourceId);
+
+                PreparedStatement insertDoubleCard = insertDoubleFacedCard;
+                insertDoubleCard.setString(1, doubleFacedCard.getCardName());
+                insertDoubleCard.setString(2, doubleFacedCard.getSet());
+                insertDoubleCard.setInt(3, frontCardImage);
+                insertDoubleCard.setInt(4, backCardImage);
+                insertDoubleCard.execute();
+            }
+            else
+            {
+                PreparedStatement insertACard = insertCard;
+                insertACard.setString(1, card.getCardName());
+                insertACard.setString(2, card.getSet());
+                insertACard.setInt(3, frontCardImage);
+                insertACard.execute();
+            }
+        }
+        else
+            throw new SQLException("Could not locate image source after inserting it");
+    }
+
+    private int insertFile(File file, int sourceId) throws SQLException
+    {
+        String path = file.getAbsolutePath();
+
+        PreparedStatement insertLocalFile = insertFile;
+        insertLocalFile.setInt(1, sourceId);
+        insertLocalFile.setString(2, path);
+        insertLocalFile.execute();
+
+        PreparedStatement queryLocalFile = queryFile;
+        queryLocalFile.setInt(1, sourceId);
+        queryLocalFile.setString(2, path);
+        ResultSet localFile = queryLocalFile.executeQuery();
+
+        if(localFile.next())
+        {
+            return localFile.getInt(FILE_ID);
+        }
+        else
+            throw new SQLException("Could not locate file record after inserting it");
+    }
+
+    public Card getMatchingCards(CardParams params, String sourceName) throws SQLException
     {
         PreparedStatement query;
 
         if(Util.NullOrWhitespace(params.set))
+        {
             query = queryCardWithoutSet;
+            query.setString(1, params.cardName);
+            query.setString(2, params.cardName);
+        }
         else
+        {
             query = queryCardWithSet;
+            query.setString(1, params.cardName);
+            query.setString(2, sourceName);
+            query.setString(3, params.set);
+        }
 
         ResultSet results = query.executeQuery();
 
