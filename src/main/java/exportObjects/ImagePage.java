@@ -8,7 +8,7 @@ package exportObjects;
 public class ImagePage {
     private transient int pageNumber = 1;
     private String FaceURL;
-    private String BackUrl;
+    private String BackURL;
 
     public int getPageNumber() {
         return pageNumber;
@@ -18,19 +18,19 @@ public class ImagePage {
         this.pageNumber = pageNumber;
     }
 
-    public String getFaceURL() {
+    public String getFaceUrl() {
         return FaceURL;
     }
 
-    public void setFaceURL(String faceURL) {
+    public void setFaceUrl(String faceURL) {
         FaceURL = faceURL;
     }
 
     public String getBackUrl() {
-        return BackUrl;
+        return BackURL;
     }
 
     public void setBackUrl(String backUrl) {
-        BackUrl = backUrl;
+        BackURL = backUrl;
     }
 }
