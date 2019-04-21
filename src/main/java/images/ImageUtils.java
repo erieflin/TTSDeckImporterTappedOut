@@ -4,18 +4,35 @@ import importObjects.Card;
 import importObjects.DoubleFacedCard;
 import importObjects.Token;
 import importObjects.deck.AbstractDeck;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.Buffer;
-import java.nio.file.Path;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ImageUtils {
 	public static ArrayList<BufferedImage> freeBuffers = new ArrayList<BufferedImage>();
@@ -132,6 +149,13 @@ public class ImageUtils {
 //		return false;
 //	}
 //
+
+	/***
+	 * Saves a stitched image at a given compression level,
+	 * @param image
+	 * @param compressionLevel
+	 * @return
+	 */
 	public static void SaveImage(StitchedImage image, double compressionLevel){
 		BufferedImage source = image.getBuffer();
 		String dest = image.getImagePath();
@@ -139,8 +163,9 @@ public class ImageUtils {
 		ImageWriteParam jpgWriteParam = jpgWriter.getDefaultWriteParam();
 		jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
 		jpgWriteParam.setCompressionQuality((float)compressionLevel);
+		File f = null;
 		try {
-			File f = new File(dest);
+			f = new File(dest);
 			File dir = f.getParentFile();
 			if(dir != null && !dir.exists()){
 				dir.mkdirs();
@@ -151,10 +176,12 @@ public class ImageUtils {
 			jpgWriter.setOutput(new FileImageOutputStream(f));
 			IIOImage outputImage = new IIOImage(source, null, null);
 			jpgWriter.write(null, outputImage, jpgWriteParam);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		jpgWriter.dispose();
+
 	}
 //
 //	public static boolean CheckDraftAssets(DraftDeck draft){
@@ -312,10 +339,81 @@ public class ImageUtils {
 		
 		for(int i = 0; i < deckAmt; i++){
 			gs[i].dispose();
+			List<String> hostedImageUrls = new ArrayList<String>();
 			if(!draftAssetsExist){
 				SaveImage(stitches.get(i), deck.getImageOutCompressionLevel());
-				
+				hostedImageUrls.add(postImage(stitches.get(i).getImagePath()));
 			}
 		}
+	}
+	public static String postImage(String f){
+		//TODO: revisit to ensure still works, add libraries to maven
+		if(f.startsWith(".")){
+			f = f.substring(1);
+		}
+		try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+
+
+			URIBuilder builder = new URIBuilder("https://imagebin.ca/upload.php");
+				//builder.setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
+			URI uri = builder.build();
+			HttpPost httpPost = new HttpPost(uri);
+			File file = new File(f);
+
+			ContentBody cbFile = new FileBody(file, ContentType.create("image/jpeg"));
+
+			MultipartEntityBuilder mpBuilder = MultipartEntityBuilder.create();
+			mpBuilder.addPart("file", cbFile);
+
+			HttpEntity mpEntity = mpBuilder.build();
+			httpPost.setEntity(mpEntity);
+			System.out.println("executing request " + httpPost.getRequestLine());
+
+			HttpResponse response;
+			try {
+				response = httpClient.execute(httpPost);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return "";
+			}
+
+			HttpEntity resEntity = response.getEntity();
+			System.out.println(response.getStatusLine());
+
+			if (resEntity != null) {
+				try {
+					String res = EntityUtils.toString(resEntity);
+					String[] resSplit = res.split("\n");
+					return resSplit[1].substring(resSplit[1].indexOf(':')+1);
+				} catch (ParseException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if (resEntity != null) {
+				try {
+					StringWriter writer = new StringWriter();
+					IOUtils.copy(resEntity.getContent(), writer, "utf8");
+					return  writer.toString();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return "";
+				}
+			}
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+
+
+
+
+
+
+		return "";
 	}
 }

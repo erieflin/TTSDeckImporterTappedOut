@@ -85,7 +85,7 @@ public class Scryfall extends AbstractCardImporter
                 }
             });
 
-            //todo populate these cleaner if a card ever has more than two somehow
+            //TODO: populate these cleaner if a card ever has more than two somehow
 
             if(cardFaceIoDetails.size()<2){
                 return null;

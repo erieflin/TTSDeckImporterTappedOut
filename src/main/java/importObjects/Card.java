@@ -49,4 +49,7 @@ public class Card
         return cardImage;
     }
 
+    public String toString(){
+        return getBoard() + ": " + getQuantity() + "x " + getCardName() + " " + getSet() + " " + getModifiers();
+    }
 }

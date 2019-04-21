@@ -15,10 +15,17 @@ public class TTS_Deck {
     private boolean SidewaysCard;
     private String GUID;
     private ColorDiffuseObj ColorDiffuse;
-    private List<Integer> DeckIds = new ArrayList<Integer>();  // list of all card ids in deck
+
+    // if Deck contains only one card, this will have an id; not a primitive so gson won't include if null
+    private Integer CardId;
+    // list of all card ids in deck, see comment below
+    private List<Integer> DeckIds = new ArrayList<Integer>();
+
     @SerializedName("ContainedObjects")
     private List<TTS_Card> Cards = new ArrayList<TTS_Card>();
+
     private TransformObj Transform;
+
     /* list of pages of deck, including front and back image sources. card id is the custom deck num + 1
      * e.g card 15 on page 1 has id 115
      * is 1 indexed, not zero. Make sure to register type addaptor when using gson
@@ -119,5 +126,13 @@ public class TTS_Deck {
 
     public void setCustomDeck(Pages customDeck) {
         CustomDeck = customDeck;
+    }
+
+    public Integer getCardId() {
+        return CardId;
+    }
+
+    public void setCardId(Integer cardId) {
+        CardId = cardId;
     }
 }
