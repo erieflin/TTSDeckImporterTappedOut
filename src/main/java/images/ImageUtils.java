@@ -313,8 +313,7 @@ public class ImageUtils {
 		for(int i = 0; i < deckAmt; i++){
 			gs[i].dispose();
 			if(!draftAssetsExist){
-				//deck.compressionLevel;
-				SaveImage(stitches.get(i), 1);//deck.compressionLevel);
+				SaveImage(stitches.get(i), deck.getImageOutCompressionLevel());
 				
 			}
 		}

@@ -29,8 +29,11 @@ public class Main
 
         EDH deck = new EDH(importer);
         deck.setName("glissaTestDeck");
+        System.out.println("Importing Deck " + deck.getName());
         deck.importDeck();
+        System.out.println("Stitching Deck " + deck.getName());
         ImageUtils.StitchDeck(deck);
+        System.out.println("Finished Deck " + deck.getName());
     }
 }
 

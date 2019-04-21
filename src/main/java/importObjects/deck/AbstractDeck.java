@@ -21,6 +21,8 @@ public abstract class AbstractDeck
     private List<Token> tokenList;
     private URL sleeveImageUrl;
     private static final String DECKFOLDER = "DeckOutput";
+    private double imageOutCompressionLevel = .25; // default output image compression config for this deck
+
     protected AbstractDeck(AbstractDeckImporter importer, URL sleeveUrl)
     {
 //        name = importer.deckName; //TODO fill in
@@ -100,5 +102,13 @@ public abstract class AbstractDeck
        currentDeckFolder.mkdirs();
 
        return  currentDeckFolder;
+    }
+
+    public double getImageOutCompressionLevel() {
+        return imageOutCompressionLevel;
+    }
+
+    public void setImageOutCompressionLevel(double imageOutCompressionLevel) {
+        this.imageOutCompressionLevel = imageOutCompressionLevel;
     }
 }
