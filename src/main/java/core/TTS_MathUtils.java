@@ -11,6 +11,10 @@ public class TTS_MathUtils {
 
     public static final int TTSPageMaxSize = 69;
 
+    public static final int CARDOFFSETX = 10;
+    public static final int CARDOFFSETY = 10;
+    public static final int CARDWIDTH = 745 + 2*CARDOFFSETX;
+    public static final int CARDHEIGHT = 1040 + 2*CARDOFFSETY;
 
     /***
      * Gets Page Id (TTS calls Deck id) from TTS Card Id
@@ -32,10 +36,22 @@ public class TTS_MathUtils {
      * @return
      */
     public static int getPageIdByCardIndex(int cardIndex){
-        return (int) Math.floor(cardIndex / TTSPageMaxSize);
+        return 1 + (int) Math.floor(cardIndex / TTSPageMaxSize);
 
     }
 
+    /***
+     * Gets the cards index in its page.
+     * @param cardIndex
+     * @return cards position in its page, rangeing from 0-68
+     */
+    public static int getCardNumInPage(int cardIndex){
+        return cardIndex % TTS_MathUtils.TTSPageMaxSize;
+    }
+
+    public static int getStartOfNextPage(int cardIndex){
+       return cardIndex + TTS_MathUtils.TTSPageMaxSize - getCardNumInPage(cardIndex);
+    }
     /***
      * Returns the TTS Card Id by the cards actual index in the deck
      * math is convert page num into 1 indexed,
@@ -47,7 +63,7 @@ public class TTS_MathUtils {
     public static int getCardIdByCardIndex(int cardIndex){
         int pageId = getPageIdByCardIndex(cardIndex);
         int cardSubID = cardIndex % TTSPageMaxSize;
-        return (int) Math.floor(100*(1+pageId) + cardSubID);
+        return (int) Math.floor(100*(pageId) + cardSubID);
     }
 
     public static List<Integer> getAllCardIds(AbstractDeck deck){
@@ -68,6 +84,12 @@ public class TTS_MathUtils {
             cardIds.add(getCardIdByCardIndex(ii));
         }
         return cardIds;
+    }
+
+    public static int getNumRequiredDeckPages(AbstractDeck deck){
+        int regularDecks = (int) Math.ceil((deck.getCardList().size() + deck.getTokenList().size())/(double)TTSPageMaxSize);
+        int transformDecks = (int) Math.ceil(deck.getTransformList().size() / (double)TTSPageMaxSize);
+        return regularDecks + transformDecks;
     }
 
 }

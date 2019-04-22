@@ -75,7 +75,7 @@ public class Scryfall extends AbstractCardImporter
             List<CardFaceIODTO> cardFaceIoDetails = new ArrayList<CardFaceIODTO>();
 
             faces.forEach(face -> {
-                HashMap<String, String> imageUris = scryfallCard.getImageUris();
+                HashMap<String, String> imageUris = face.getImageUris();
                 String uri = getUriFromImageUris(imageUris);
 
                 if(uri!=null){
@@ -101,7 +101,7 @@ public class Scryfall extends AbstractCardImporter
 
             CardFaceIODTO backCard= cardFaceIoDetails.get(1);
             if(!backCard.getDestFile().exists()) {
-                if (!downloadCardImageToFile(frontCard.getDestFile(), frontCard.getUri())) {
+                if (!downloadCardImageToFile(backCard.getDestFile(), frontCard.getUri())) {
                     return null;
                 }
             }

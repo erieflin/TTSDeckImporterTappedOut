@@ -18,13 +18,14 @@ import java.util.UUID;
 import java.io.File;
 
 public class JsonUtils {
-    public static Gson gson;
+    public static Gson gson = initGson();
 
-    public JsonUtils(){
+    public static Gson initGson(){
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Pages.class, new PagesAdapter());
         gsonBuilder.registerTypeAdapter(ImagePage.class, new PageAdapter());
         gson = gsonBuilder.create();
+        return gson;
     }
 
 	/***
@@ -96,74 +97,80 @@ public class JsonUtils {
 //				deckObj.add("BackURL", new JsonPrimitive(deck.backUrl));
 //				deckStateObject.add(""+deckID, deckObj);
 //			}
+			ImagePage page = new ImagePage();
+			page.setFaceUrl(deck.getHostedImageUrls().get(deckID-1));//deck.deckLinks[deckID-1]));
+			page.setBackUrl(deck.getHostedImageUrls().get(deckID-1) + "{Unique}");//deck.deckLinks[deckID] + "{Unique}"));
+			page.setPageNumber(deckID);
+			pages.getPageList().add(page);
 		}
 
 		return pages;
 	}
 
-	public static TTS_Card NewCardObject(int id, String name){
-		TTS_Card cardObject = new TTS_Card();
-		cardObject.setName("Card");
-		cardObject.setNickname(""+name);
-		cardObject.setCardId(id);
-		cardObject.setTransform(NewDeckPosObject(1, 1, 1, false, 1.0));
 
-		return cardObject;
-	}
+
+
 
 	public static TTS_Deck generateTokensTTSDeck(AbstractDeck deck){
 		//token and transform object state----------------------------------------
+		String tokenKey = "Token";
+		String transformKey = "Transform";
 		List<Integer> tokenIds = new ArrayList<Integer>();
 		ArrayList<Integer> tokenPageIDs = new ArrayList<Integer>();
-		//tokens list starts after deck list, so start i at deck list size
-		int tokenStartIndex = deck.getCardList().size()-1;
-		for(int ii=tokenStartIndex; ii< deck.getTokenList().size(); ++ii){
-			Token token = deck.getTokenList().get(ii-tokenStartIndex);
+		List<TTS_Card> tokenCards = new ArrayList<TTS_Card>();
 
-			int deckID = TTS_MathUtils.getPageIdByCardIndex(ii);
-			int cardID = TTS_MathUtils.getCardIdByCardIndex(ii);
+		if(deck.getTTSDeckMap().containsKey(tokenKey)) {
+			List<TTS_Card> cards = deck.getTTSDeckMap().get(tokenKey);
+			for (TTS_Card token: cards) {
 
-			if(!tokenPageIDs.contains(deckID)) tokenPageIDs.add(deckID);
+				int pageID = token.getPageId();
+				int cardID = token.getCardId();
 
-			tokenIds.add(cardID);
-		}
-		//check where exactly this image saves, may screw things up
-		for(int ii =0; ii < deck.getCardList().size(); ++ii){
-			Card card = deck.getCardList().get(ii);
-			if(card instanceof DoubleFacedCard){
-				int deckID = TTS_MathUtils.getPageIdByCardIndex(ii);
-				int cardID = TTS_MathUtils.getCardIdByCardIndex(ii);
-
-				if(!tokenPageIDs.contains(deckID)) tokenPageIDs.add(deckID);
+				if (!tokenPageIDs.contains(pageID)) tokenPageIDs.add(pageID);
+				tokenCards.add(token);
 				tokenIds.add(cardID);
 			}
 		}
-
+		if(deck.getTTSDeckMap().containsKey(transformKey)) {
+			List<DoubleFacedCard> transforms = deck.getTransformList();
+			List<TTS_Card> cards = deck.getTTSDeckMap().get(transformKey);
+			//check where exactly this image saves, may screw things up
+			for (TTS_Card card: cards) {
+				int pageID = card.getPageId();
+				int cardID = card.getCardId();
+				if (!tokenPageIDs.contains(pageID)) tokenPageIDs.add(pageID);
+				tokenIds.add(cardID);
+				tokenCards.add(card);
+			}
+		}
 		TTS_Deck tokenDeck= NewDeckBaseObject(tokenIds, "Tokens");
 		tokenDeck.setTransform(NewDeckPosObject(0, 1, 0, true, 1.0));
 		tokenDeck.setCustomDeck(NewPagesObject(tokenPageIDs, deck));
-
+		tokenDeck.setCards(tokenCards);
 		return tokenDeck;
 	}
 
 	public static TTS_Deck generateCommanderTTSDeck(AbstractDeck deck){
-				//commander object state----------------------------------------
+		//commander object state----------------------------------------
+		String commanderKey = "Commander";
+		if(!deck.getTTSDeckMap().containsKey(commanderKey)){
+			return new TTS_Deck();
+		}
 		List<Integer> commanderStateIDs = new ArrayList<Integer>();
 		List<TTS_Card> commanderCards = new ArrayList<TTS_Card>();
 		ArrayList<Integer> commanderStatePageIDs = new ArrayList<Integer>();
-//
+
 //		/* look for which card is the commander needs to be revisited and improved
-		for(int ii =0; ii < deck.getCardList().size(); ++ii){
-			Card card = deck.getCardList().get(ii);
-			//if(!isCommander)continue;
-			int deckID = TTS_MathUtils.getPageIdByCardIndex(ii);
-			int cardID = TTS_MathUtils.getCardIdByCardIndex(ii);
-			if(!commanderStatePageIDs.contains(deckID)) commanderStatePageIDs.add(deckID);
+		List<TTS_Card> cards = deck.getTTSDeckMap().get(commanderKey);
+		for(TTS_Card card: cards){
+			int pageID = card.getPageId();
+			int cardID = card.getCardId();
+			if(!commanderStatePageIDs.contains(pageID)) commanderStatePageIDs.add(pageID);
 			commanderStateIDs.add(cardID);
-			commanderCards.add(NewCardObject(cardID, card.getCardName()));
+			commanderCards.add(card);
 		}
 
-		TTS_Deck commanderDeck = NewDeckBaseObject(commanderStateIDs, "Commander");
+		TTS_Deck commanderDeck = NewDeckBaseObject(commanderStateIDs, commanderKey);
 		commanderDeck.setCards(commanderCards);
 		commanderDeck.setTransform(NewDeckPosObject(2, 1, 2, true, 1.25));
 		commanderDeck.setCustomDeck(NewPagesObject(commanderStatePageIDs, deck));
@@ -193,16 +200,16 @@ public class JsonUtils {
 		List<Integer> mainCardIDs = new ArrayList<Integer>();
 		List<TTS_Card> mainCards = new ArrayList<TTS_Card>();
 		ArrayList<Integer> mainStatePageIDs = new ArrayList<Integer>();
-		for(int ii =0; ii<deck.getCardList().size(); ++ii){
-			Card card = deck.getCardList().get(ii);
-			if(!card.getBoard().equals(CardDetails.Board.MAIN))continue;
-			int cardId = TTS_MathUtils.getCardIdByCardIndex(ii);
-			int pageId = TTS_MathUtils.getPageIdByCardIndex(ii);
-			if(!mainStatePageIDs.contains(pageId)) mainStatePageIDs.add(pageId);
-			mainCardIDs.add(cardId);
-			mainCards.add(NewCardObject(cardId, card.getCardName()));
+		if(deck.getTTSDeckMap().containsKey(CardDetails.Board.MAIN.toString())){
+			List<TTS_Card> cards = deck.getTTSDeckMap().get(CardDetails.Board.MAIN.toString());
+			for(TTS_Card card: cards){
+				int cardId = card.getCardId();
+				int pageId = card.getPageId();
+				if(!mainStatePageIDs.contains(pageId)) mainStatePageIDs.add(pageId);
+				mainCardIDs.add(cardId);
+				mainCards.add(card);
+			}
 		}
-
 		TTS_Deck mainDeck = NewDeckBaseObject(mainCardIDs, deck.getName());
 		mainDeck.setCards(mainCards);
 		mainDeck.setTransform(NewDeckPosObject(1, 1, 0, false, 1.0));
@@ -210,84 +217,43 @@ public class JsonUtils {
 		return mainDeck;
 	}
 
+	public static TTS_DeckCollection buildDecks(AbstractDeck deck){
+		TTS_DeckCollection collection = new TTS_DeckCollection();
+
+		for(String key: deck.getTTSDeckMap().keySet()){
+
+			List<TTS_Card> cards = deck.getTTSDeckMap().get(key);
+			List<Integer> pageIds = new ArrayList<Integer>();
+			List<Integer> cardIds = new ArrayList<Integer>();
+
+			for(TTS_Card card: cards){
+				int cardId = card.getCardId();
+				int pageId = card.getPageId();
+				if(!pageIds.contains(pageId)) pageIds.add(pageId);
+				cardIds.add(cardId);
+			}
+
+			String pileName = key;
+			if(key.equalsIgnoreCase(CardDetails.Board.MAIN.toString())){
+				pileName = deck.getName();
+			}
+
+			TTS_Deck ttsDeck = NewDeckBaseObject(cardIds, pileName);
+			ttsDeck.setCards(cards);
+			ttsDeck.setTransform(NewDeckPosObject(1, 1, 0, false, 1.0));
+			ttsDeck.setCustomDeck(NewPagesObject(pageIds, deck));
+
+			collection.getObjectStates().add(ttsDeck);
+		}
+
+		return collection;
+	}
+
 	public static String BuildJSONFile(AbstractDeck deck){
         String deckStr = "";
 
-
-		TTS_DeckCollection deckCollection = new TTS_DeckCollection();
-
-		//List<Integer> deckCardIds = TTS_MathUtils.getAllCardIds(deck);
-		//List<Integer> tokenCardIds = TTS_MathUtils.getAllTokenCardIds(deck);
-
-		//List<Integer> cardIDs = new ArrayList<Integer>(deckCardIds.size() + tokenCardIds.size());
-		//cardIDs.addAll(deckCardIds);
-		//cardIDs.addAll(tokenCardIds);
-
-        //TTS_Deck ttsDeck = NewDeckBaseObject(cardIDs, deck.getName());
-        //deckCollection.getObjectStates().add(ttsDeck);
-
-		TTS_Deck mainDeck = generateMainBoardTTSDeck(deck);
-		if(mainDeck.getCards().size() != 0){
-			deckCollection.getObjectStates().add(mainDeck);
-		}
-
-        TTS_Deck commanderDeck = generateCommanderTTSDeck(deck);
-        if(commanderDeck.getCards().size() != 0){
-        	deckCollection.getObjectStates().add(commanderDeck);
-		}
-
-		TTS_Deck tokenDeck = generateCommanderTTSDeck(deck);
-		if(commanderDeck.getCards().size() != 0){
-			deckCollection.getObjectStates().add(commanderDeck);
-		}
-
-//
-//
-//
-//		//side board state ---------------------------------------------------
-//		//JsonArray sideContents = new JsonArray();
-////		TTS_Deck WIPSideDeck = new TTS_Deck();
-////		List<TTS_Card> sideContents = WIPSideDeck.getCards();
-////		List<Integer> sideStateDeckIDs = WIPSideDeck.getDeckIds();
-////		populateSideBoard(WIPSideDeck, deck, sideStateIDs);
-//		curStateIndex = 2;
-//		JsonArray sideStateIDs = new JsonArray();
-//		JsonArray sideContents = new JsonArray();
-//		ArrayList<Integer> sideStateDeckIDs = new ArrayList<Integer>();
-//		for(FrogCard card : deck.cardList){
-//			if(card.amounts[curStateIndex] == 0)continue;
-//			int deckID = card.jsonId/100;
-//			if(!sideStateDeckIDs.contains(deckID)){
-//				sideStateDeckIDs.add(deckID);
-//			}
-//			for(int i = 0; i < card.amounts[2]; i++){
-//				sideStateIDs.add(new JsonPrimitive(card.jsonId));
-//				sideContents.add(NewCardObject(card.jsonId, card.getDisplayName()));
-//			}
-//		}
-//
-//
-//		for(FrogCard card : deck.transformList){
-//			if(card.amounts[curStateIndex] == 0)continue;
-//			int deckID = card.jsonId/100;
-//			if(!sideStateDeckIDs.contains(deckID)){
-//				sideStateDeckIDs.add(deckID);
-//			}
-//			for(int i = 0; i < card.amounts[1]; i++){
-//				sideStateIDs.add(new JsonPrimitive(card.jsonId));
-//				sideContents.add(NewCardObject(card.jsonId, card.getDisplayName()));
-//			}
-//		}
-//		JsonObject sideState = NewDeckBaseObject(sideStateIDs, "Sideboard");
-//		sideState.add("ContainedObjects", sideContents);
-//		sideState.add("Transform", NewDeckPosObject(2, 1, 0, false, 1.0));
-//		sideState.add("CustomDeck", NewDeckStateObject(sideStateDeckIDs, deck));
-//		if(sideStateIDs.size()>0)objectStates.add(sideState);
-//
-//		//main obj ------------------------------------------------------------
-//		deckJSON.add("ObjectStates", objectStates);
-//
-		deckStr = gson.toJson(deckCollection);
+        TTS_DeckCollection deckCollection = buildDecks(deck);
+        deckStr = gson.toJson(deckCollection);
 
 		try{
 			File deckDir = deck.getDeckFolder();

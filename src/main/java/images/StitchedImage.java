@@ -1,6 +1,9 @@
 package images;
 
+import exportObjects.TTS_Card;
+
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 
 public class StitchedImage {
     private String imagePath;

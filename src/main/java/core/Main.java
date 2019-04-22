@@ -34,6 +34,7 @@ public class Main
         System.out.println("Stitching Deck " + deck.getName());
         ImageUtils.StitchDeck(deck);
         System.out.println("Finished Deck " + deck.getName());
+        JsonUtils.BuildJSONFile(deck);
     }
 }
 

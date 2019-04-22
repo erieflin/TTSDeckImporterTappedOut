@@ -2,10 +2,14 @@ package importObjects;
 
 import java.io.File;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
-import importObjects.CardDetails.*;
 
-public class Card
+import exportObjects.TTS_Card;
+import importObjects.CardDetails.*;
+import org.jsoup.Connection;
+
+public class Card implements BaseCard
 {
     //TODO these might change to something other than final
     private String cardName;
@@ -14,6 +18,7 @@ public class Card
     private Board board;
     private Tag[] modifiers;
     private File cardImage;
+    private HashMap<Integer, TTS_Card> exportCards = new HashMap<Integer, TTS_Card>();
 
     public Card(CardParams params, File cardImage)
     {
@@ -52,4 +57,5 @@ public class Card
     public String toString(){
         return getBoard() + ": " + getQuantity() + "x " + getCardName() + " " + getSet() + " " + getModifiers();
     }
+
 }

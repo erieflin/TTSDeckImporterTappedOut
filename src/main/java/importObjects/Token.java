@@ -2,7 +2,7 @@ package importObjects;
 
 import java.io.File;
 
-public class Token
+public class Token implements BaseCard
 {
    private String cardName;
    private String style;

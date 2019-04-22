@@ -1,6 +1,8 @@
 package importObjects.deck;
 
 import core.Constants;
+import exportObjects.ImagePage;
+import exportObjects.TTS_Card;
 import importObjects.Card;
 import importObjects.DoubleFacedCard;
 import importObjects.Token;
@@ -10,6 +12,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 
@@ -23,6 +26,8 @@ public abstract class AbstractDeck
     private static final String DECKFOLDER = "DeckOutput";
     private double imageOutCompressionLevel = .25; // default output image compression config for this deck
     private List<String> hostedImageUrls = new ArrayList<String>();
+    private HashMap<String, List<TTS_Card>> ttsDeckMap = new HashMap<String, List<TTS_Card>>();
+
     protected AbstractDeck(AbstractDeckImporter importer, URL sleeveUrl)
     {
 //        name = importer.deckName; //TODO fill in
@@ -80,10 +85,10 @@ public abstract class AbstractDeck
         this.tokenList = tokenList;
     }
 
-    public List<DoubleFacedCard> getTranformList(){
+    public List<DoubleFacedCard> getTransformList(){
         List<DoubleFacedCard> cardList = new ArrayList<DoubleFacedCard>();
         int count = 0;
-        for(Card card: cardList){
+        for(Card card: this.cardList){
             if(card instanceof DoubleFacedCard){
                cardList.add((DoubleFacedCard) card);
             }
@@ -120,5 +125,18 @@ public abstract class AbstractDeck
         this.hostedImageUrls = hostedImageUrls;
     }
 
+    public HashMap<String, List<TTS_Card>> getTTSDeckMap() {
+        return ttsDeckMap;
+    }
 
+    public void setTTSDeckMap(HashMap<String, List<TTS_Card>> ttsDeckMap) {
+        this.ttsDeckMap = ttsDeckMap;
+    }
+
+    public void addCardToTTSDeckMap(String deckPile, TTS_Card card){
+        if(!this.ttsDeckMap.containsKey(deckPile)){
+            this.ttsDeckMap.put(deckPile, new ArrayList<TTS_Card>());
+        }
+        this.ttsDeckMap.get(deckPile).add(card);
+    }
 }

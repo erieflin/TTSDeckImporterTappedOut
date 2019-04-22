@@ -1,5 +1,10 @@
 package images;
 
+import com.sun.corba.se.impl.orbutil.graph.Graph;
+import constants.TTS_DeckConstants;
+import core.TTS_MathUtils;
+import exportObjects.TTS_Card;
+import importObjects.BaseCard;
 import importObjects.Card;
 import importObjects.DoubleFacedCard;
 import importObjects.Token;
@@ -40,7 +45,7 @@ public class ImageUtils {
 //	public static ArrayList<CardRetriever> cardRetrievers = new ArrayList<CardRetriever>();
 
 //	public static long resetTime = 0;
-	
+
 //	static{
 //		cardRetrievers.add(new ScryfallCardRetriever());
 ////		cardRetrievers.add(new MagicCardsInfoRetriever());
@@ -207,39 +212,144 @@ public class ImageUtils {
 //		return draftAssetsExist;
 //	}
 //
+
+	public static void addCardToGraphics(int cardNum, File cardFile,  Graphics gs ){
+		int gridX = cardNum%10;
+		int gridY = cardNum/10;
+
+		int realX = gridX * TTS_MathUtils.CARDWIDTH + TTS_MathUtils.CARDOFFSETX;
+		int realY = gridY * TTS_MathUtils.CARDHEIGHT + TTS_MathUtils.CARDOFFSETY;
+		try {
+			File dir = cardFile.getParentFile();
+			if (dir != null &&!dir.exists()) {
+				dir.mkdirs();
+			}
+			BufferedImage cardImage = ImageIO.read(cardFile);
+			gs.drawImage(
+					cardImage, realX, realY,
+					TTS_MathUtils.CARDWIDTH - TTS_MathUtils.CARDOFFSETX*2,
+					TTS_MathUtils.CARDHEIGHT - TTS_MathUtils.CARDOFFSETY*2,
+					null
+			);
+		}catch(Exception e){
+			System.out.println("Error loading from file " + cardFile.getName());
+			e.printStackTrace();
+		}
+	}
+
+	public static int stitchCards(AbstractDeck deck, List<? extends BaseCard> cards, int startCount, Graphics[] gs){
+		for(BaseCard card : cards){
+			int pageId = TTS_MathUtils.getPageIdByCardIndex(startCount);
+			int cardNum = TTS_MathUtils.getCardNumInPage(startCount);
+			int cardId = TTS_MathUtils.getCardIdByCardIndex(startCount);
+
+			TTS_Card ttsCard = new TTS_Card();
+			ttsCard.setNickname(card.getCardName());
+			ttsCard.setCardId(cardId);
+			ttsCard.setPageId(pageId);
+			if(card instanceof  DoubleFacedCard){
+				String board = ((Card) card).getBoard().toString();
+				deck.addCardToTTSDeckMap(board, ttsCard);
+				deck.addCardToTTSDeckMap(TTS_DeckConstants.TOKENKEY, ttsCard);
+//				DoubleFacedCard dfCard = ((DoubleFacedCard) card);
+//				addCardToGraphics(startCount,  dfCard.getBackCardImage(), gs[pageId-1]);
+			}else if(card instanceof Card){
+				String board = ((Card) card).getBoard().toString();
+				deck.addCardToTTSDeckMap(board, ttsCard);
+			}else if(card instanceof Token){
+				deck.addCardToTTSDeckMap(TTS_DeckConstants.TOKENKEY, ttsCard);
+			}else{
+				String board = ((Card) card).getBoard().toString();
+				deck.addCardToTTSDeckMap("Unknown", ttsCard);
+			}
+
+			addCardToGraphics(cardNum,  card.getCardImage(), gs[pageId-1]);
+
+			startCount++;
+		}
+		return startCount;
+	}
+
+	public static Graphics[] initGraphics(AbstractDeck deck, List<StitchedImage> stitches){
+		int deckAmt = TTS_MathUtils.getNumRequiredDeckPages(deck);
+		Graphics[] gs = new Graphics[deckAmt];
+
+		for(int i = 0; i < deckAmt; i++)
+
+		{
+		StitchedImage stitchedImg = new StitchedImage();
+		stitchedImg.setImagePath(deck.getDeckFolder().getPath() + File.separator + i + ".jpg");
+
+		BufferedImage buffer = GetBuffer(TTS_MathUtils.CARDWIDTH * 10, TTS_MathUtils.CARDHEIGHT * 7);
+		stitchedImg.setBuffer(buffer);
+		gs[i] = buffer.getGraphics();
+		gs[i].setColor(Color.BLACK);
+		gs[i].fillRect(0, 0, TTS_MathUtils.CARDWIDTH * 10, TTS_MathUtils.CARDHEIGHT * 7);
+		// TODO: Add card back here
+		//			if(deck.hiddenImage != null){
+		//				gs[i].drawImage(deck.hiddenImage, cardWidth * 9, cardHeight * 6, cardWidth, cardHeight, null);
+		//			}
+		stitches.add(stitchedImg);
+		}
+		return gs;
+	}
+
 	public static void StitchDeck(AbstractDeck deck){
+		List<StitchedImage> stitches = new ArrayList<StitchedImage>();
+
+		Graphics[] gs = initGraphics(deck,stitches);
+
+		int cardCount = 0;
+
+		cardCount = stitchCards(deck, deck.getCardList(), cardCount, gs);
+		if(TTS_MathUtils.getCardNumInPage(cardCount)!=0){
+			cardCount = TTS_MathUtils.getStartOfNextPage(cardCount);
+		}
+		cardCount = stitchCards(deck, deck.getTokenList(), cardCount, gs);
+
+		for(int i = 0; i < gs.length; i++) {
+			gs[i].dispose();
+		}
+
+		for(int i = 0; i < stitches.size(); i++) {
+			SaveImage(stitches.get(i), deck.getImageOutCompressionLevel());
+			deck.getHostedImageUrls().add(postImage(stitches.get(i).getImagePath()));
+		}
+
+	}
+
+	public static void oldStitchDeck(AbstractDeck deck){
 		java.util.List<StitchedImage> stitches = new ArrayList<StitchedImage>();
 		int cardsPerDeck = 69;
-		
-		int regularDecks = (int) Math.ceil((deck.getCardList().size() + deck.getTokenList().size())/(double)cardsPerDeck);
-		int transformDecks = (int) Math.ceil(deck.getTranformList().size() / (double)cardsPerDeck);
-		int deckAmt = regularDecks + transformDecks;
-		
+
+		int deckAmt = TTS_MathUtils.getNumRequiredDeckPages(deck);
+
+
 		boolean draftAssetsExist = false; // deck instanceof DraftDeck;
-		
-		int cardOffsetX = 10;
-		int cardOffsetY = 10;
-		
+
+		int cardOffsetX = TTS_MathUtils.CARDOFFSETX;
+		int cardOffsetY = TTS_MathUtils.CARDOFFSETY;
+
 //		int cardOffsetX = 0;
 //		int cardOffsetY = 0;
-		
-		int cardWidth = 745 + 2*cardOffsetX;
-		int cardHeight = 1040 + 2*cardOffsetY;
-		
+
+		int cardWidth = TTS_MathUtils.CARDWIDTH;
+		int cardHeight = TTS_MathUtils.CARDHEIGHT;
+
 //		int cardWidth = 223 + 2*cardOffsetX;
 //		int cardHeight = 310 + 2*cardOffsetY;
-		
+
 //		deck.buffers = new BufferedImage[deckAmt];
 //		deck.deckFileNames = new String[deckAmt];
 //		deck.deckLinks = new String[deckAmt];
-		
+
 		Graphics[] gs = new Graphics[deckAmt];
-		
+
 		for(int i = 0; i < deckAmt; i++){
 			StitchedImage stitchedImg = new StitchedImage();
 			stitchedImg.setImagePath(deck.getDeckFolder().getPath() + File.separator + i + ".jpg");
 			//deck.deckLinks[i] = JsonUtils.postImage(Config.hostUrlPrefix + Config.publicDeckDir + deck.deckId + i + ".jpg");
-			
+
 //			if(deck instanceof DraftDeck){
 //				DraftDeck draft = (DraftDeck)deck;
 //				String cleanSetName = draft.setName.replaceAll("\\s", "_");
@@ -252,21 +362,29 @@ public class ImageUtils {
 			gs[i] = buffer.getGraphics();
 			gs[i].setColor(Color.BLACK);
 			gs[i].fillRect(0, 0, cardWidth * 10, cardHeight * 7);
-//			if(deck.hiddenImage != null){
-//				gs[i].drawImage(deck.hiddenImage, cardWidth * 9, cardHeight * 6, cardWidth, cardHeight, null);
-//			}
+			// TODO: Add card back here
+			//			if(deck.hiddenImage != null){
+			//				gs[i].drawImage(deck.hiddenImage, cardWidth * 9, cardHeight * 6, cardWidth, cardHeight, null);
+			//			}
             stitches.add(stitchedImg);
 		}
-		
+
 		int cardCount = 0;
 		for(Card card : deck.getCardList()){
-			int deckNum = cardCount / cardsPerDeck;
-			int deckID = cardCount % cardsPerDeck;
-			//card.jsonId = 100*(1+deckNum) + deckID;
+			int pageId = TTS_MathUtils.getPageIdByCardIndex(cardCount);
+			int cardNum = cardCount % cardsPerDeck;
+			int cardId = TTS_MathUtils.getCardIdByCardIndex(cardCount);
+
+			TTS_Card ttsCard = new TTS_Card();
+			ttsCard.setNickname(card.getCardName());
+			ttsCard.setCardId(cardId);
+			ttsCard.setPageId(pageId);
+			deck.addCardToTTSDeckMap(card.getBoard().toString(), ttsCard);
+
 			if(!draftAssetsExist){
-				int gridX = deckID%10;
-				int gridY = deckID/10;
-	
+				int gridX = cardNum%10;
+				int gridY = cardNum/10;
+
 				int realX = gridX * cardWidth + cardOffsetX;
 				int realY = gridY * cardHeight + cardOffsetY;
 				try {
@@ -277,7 +395,7 @@ public class ImageUtils {
                             dir.mkdirs();
                     }
 					BufferedImage cardImage = ImageIO.read(f);
-					gs[deckNum].drawImage(cardImage, realX, realY, cardWidth - cardOffsetX*2, cardHeight - cardOffsetY*2, null);
+					gs[pageId-1].drawImage(cardImage, realX, realY, cardWidth - cardOffsetX*2, cardHeight - cardOffsetY*2, null);
 				}catch(Exception e){
 					System.out.println("Error loading from file " + card.getCardImage().getName());
 					e.printStackTrace();
@@ -287,13 +405,17 @@ public class ImageUtils {
 		}
 
 		for(Token token : deck.getTokenList()){
-			int deckNum = cardCount / cardsPerDeck;
-			int deckID = cardCount % cardsPerDeck;
+			int pageId = TTS_MathUtils.getPageIdByCardIndex(cardCount);
+			int cardNum = cardCount % cardsPerDeck;
+			int cardId = TTS_MathUtils.getCardIdByCardIndex(cardCount);
 			//token.jsonId = 100*(1+deckNum) + deckID;
+			TTS_Card ttsCard = new TTS_Card(token.getCardName(), cardId);
+			ttsCard.setPageId(pageId);
+			deck.addCardToTTSDeckMap("Token", ttsCard);
 			if(!draftAssetsExist){
-				int gridX = deckID%10;
-				int gridY = deckID/10;
-	
+				int gridX = cardNum%10;
+				int gridY = cardNum/10;
+
 				int realX = gridX * cardWidth + cardOffsetX;
 				int realY = gridY * cardHeight + cardOffsetY;
 				try{
@@ -303,7 +425,7 @@ public class ImageUtils {
 						dir.mkdirs();
 					}
 					BufferedImage cardImage = ImageIO.read(f);
-					gs[deckNum].drawImage(cardImage, realX, realY, cardWidth - cardOffsetX*2, cardHeight - cardOffsetY*2, null);
+					gs[pageId-1].drawImage(cardImage, realX, realY, cardWidth - cardOffsetX*2, cardHeight - cardOffsetY*2, null);
 				}catch(Exception e){
 					e.printStackTrace();
 				}
@@ -314,20 +436,29 @@ public class ImageUtils {
 		if(cardCount%cardsPerDeck!=0){
 			cardCount += cardsPerDeck - (cardCount%cardsPerDeck);
 		}
-		for(DoubleFacedCard card : deck.getTranformList()){
-			int deckNum = cardCount / cardsPerDeck;
-			int deckID = cardCount % cardsPerDeck;
+
+		for(DoubleFacedCard card : deck.getTransformList()){
+
+			int pageId = TTS_MathUtils.getPageIdByCardIndex(cardCount);
+			int cardNum = cardCount % cardsPerDeck;
+			int cardId = TTS_MathUtils.getCardIdByCardIndex(cardCount);
+			//token.jsonId = 100*(1+deckNum) + deckID;
+			TTS_Card ttsCard = new TTS_Card();
+			ttsCard.setNickname(card.getCardName());
+			ttsCard.setCardId(cardId);
+			ttsCard.setPageId(pageId);
+			deck.addCardToTTSDeckMap("Transform", ttsCard);
 			//card.transformJsonId = 100*(1+deckNum) + deckID;
-			
+
 			if(!draftAssetsExist){
-				int gridX = deckID%10;
-				int gridY = deckID/10;
-	
+				int gridX = cardNum%10;
+				int gridY = cardNum/10;
+
 				int realX = gridX * cardWidth + cardOffsetX;
 				int realY = gridY * cardHeight + cardOffsetY;
 				try{
 					BufferedImage cardImage = ImageIO.read(card.getBackCardImage());
-					gs[deckNum+1].drawImage(cardImage, realX, realY, cardWidth - cardOffsetX*2, cardHeight - cardOffsetY*2, null);
+					gs[pageId-1].drawImage(cardImage, realX, realY, cardWidth - cardOffsetX*2, cardHeight - cardOffsetY*2, null);
 				}catch(Exception e){
 					System.out.println("Err with " + card.getBackCardImage().getPath());
 					e.printStackTrace();
@@ -336,16 +467,19 @@ public class ImageUtils {
 			cardCount++;
 			if(cardCount%cardsPerDeck==0)cardCount+=cardsPerDeck;
 		}
-		
+		List<String> hostedImageUrls = new ArrayList<String>();
+
 		for(int i = 0; i < deckAmt; i++){
 			gs[i].dispose();
-			List<String> hostedImageUrls = new ArrayList<String>();
 			if(!draftAssetsExist){
 				SaveImage(stitches.get(i), deck.getImageOutCompressionLevel());
 				hostedImageUrls.add(postImage(stitches.get(i).getImagePath()));
+
 			}
 		}
+		deck.setHostedImageUrls(hostedImageUrls);
 	}
+
 	public static String postImage(String f){
 		//TODO: revisit to ensure still works, add libraries to maven
 		if(f.startsWith(".")){
