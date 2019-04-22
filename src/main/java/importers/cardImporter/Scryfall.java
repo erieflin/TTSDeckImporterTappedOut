@@ -107,7 +107,7 @@ public class Scryfall extends AbstractCardImporter
 
             CardFaceIODTO backCard= cardFaceIoDetails.get(1);
             if(!backCard.getDestFile().exists()) {
-                if (!downloadCardImageToFile(backCard.getDestFile(), frontCard.getUri())) {
+                if (!downloadCardImageToFile(backCard.getDestFile(), backCard.getUri())) {
                     return null;
                 }
             }

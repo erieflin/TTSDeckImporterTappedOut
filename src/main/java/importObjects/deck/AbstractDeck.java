@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
+import java.util.stream.Collectors;
 
 public abstract class AbstractDeck
 {
@@ -85,15 +86,22 @@ public abstract class AbstractDeck
         this.tokenList = tokenList;
     }
 
+    public List<Card> getCardListWithoutTransforms(){
+        return cardList.stream().filter(
+                card-> !(card instanceof DoubleFacedCard)
+        )
+        .collect(Collectors.toList());
+    }
+
     public List<DoubleFacedCard> getTransformList(){
-        List<DoubleFacedCard> cardList = new ArrayList<DoubleFacedCard>();
-        int count = 0;
-        for(Card card: this.cardList){
-            if(card instanceof DoubleFacedCard){
-               cardList.add((DoubleFacedCard) card);
-            }
-        }
-        return cardList;
+        return cardList.stream()
+        .filter(
+                card-> (card instanceof DoubleFacedCard)
+        )
+        .map(
+                card -> (DoubleFacedCard) card
+        )
+        .collect(Collectors.toList());
     }
 
     public File getDeckFolder(){

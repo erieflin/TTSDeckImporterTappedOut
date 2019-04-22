@@ -50,7 +50,13 @@ public class TTS_MathUtils {
     }
 
     public static int getStartOfNextPage(int cardIndex){
-       return cardIndex + TTS_MathUtils.TTSPageMaxSize - getCardNumInPage(cardIndex);
+        int cardNum = TTS_MathUtils.getCardNumInPage(cardIndex);
+
+        if(cardNum == 0){
+            return cardIndex;
+        }
+
+        return cardIndex + TTS_MathUtils.TTSPageMaxSize - cardNum;
     }
     /***
      * Returns the TTS Card Id by the cards actual index in the deck
@@ -88,7 +94,7 @@ public class TTS_MathUtils {
 
     public static int getNumRequiredDeckPages(AbstractDeck deck){
         int regularDecks = (int) Math.ceil((deck.getCardList().size() + deck.getTokenList().size())/(double)TTSPageMaxSize);
-        int transformDecks = (int) Math.ceil(deck.getTransformList().size() / (double)TTSPageMaxSize);
+        int transformDecks = 2*(int) Math.ceil(deck.getTransformList().size() / (double)TTSPageMaxSize);
         return regularDecks + transformDecks;
     }
 

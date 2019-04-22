@@ -38,6 +38,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ImageUtils {
 	public static ArrayList<BufferedImage> freeBuffers = new ArrayList<BufferedImage>();
@@ -247,25 +248,28 @@ public class ImageUtils {
 			ttsCard.setNickname(card.getCardName());
 			ttsCard.setCardId(cardId);
 			ttsCard.setPageId(pageId);
-			if(card instanceof  DoubleFacedCard){
+			if(card instanceof  DoubleFacedCard) {
 				String board = ((Card) card).getBoard().toString();
 				deck.addCardToTTSDeckMap(board, ttsCard);
-				deck.addCardToTTSDeckMap(TTS_DeckConstants.TOKENKEY, ttsCard);
-//				DoubleFacedCard dfCard = ((DoubleFacedCard) card);
-//				addCardToGraphics(startCount,  dfCard.getBackCardImage(), gs[pageId-1]);
-			}else if(card instanceof Card){
-				String board = ((Card) card).getBoard().toString();
-				deck.addCardToTTSDeckMap(board, ttsCard);
-			}else if(card instanceof Token){
-				deck.addCardToTTSDeckMap(TTS_DeckConstants.TOKENKEY, ttsCard);
-			}else{
-				String board = ((Card) card).getBoard().toString();
-				deck.addCardToTTSDeckMap("Unknown", ttsCard);
+				deck.addCardToTTSDeckMap(TTS_DeckConstants.TRANSFORMKEY, ttsCard);
+				DoubleFacedCard dfCard = ((DoubleFacedCard) card);
+				addCardToGraphics(cardNum, dfCard.getBackCardImage(), gs[pageId - 1]);
+				addCardToGraphics(cardNum, dfCard.getCardImage(), gs[pageId]);
+				startCount++;
+			}else {
+				if (card instanceof Card) {
+					String board = ((Card) card).getBoard().toString();
+					deck.addCardToTTSDeckMap(board, ttsCard);
+				} else if (card instanceof Token) {
+					deck.addCardToTTSDeckMap(TTS_DeckConstants.TOKENKEY, ttsCard);
+				} else {
+					String board = ((Card) card).getBoard().toString();
+					deck.addCardToTTSDeckMap("Unknown", ttsCard);
+				}
+
+				addCardToGraphics(cardNum, card.getCardImage(), gs[pageId - 1]);
+				startCount++;
 			}
-
-			addCardToGraphics(cardNum,  card.getCardImage(), gs[pageId-1]);
-
-			startCount++;
 		}
 		return startCount;
 	}
@@ -300,12 +304,15 @@ public class ImageUtils {
 		Graphics[] gs = initGraphics(deck,stitches);
 
 		int cardCount = 0;
+		cardCount = stitchCards(deck, deck.getCardListWithoutTransforms(), cardCount, gs);
 
-		cardCount = stitchCards(deck, deck.getCardList(), cardCount, gs);
-		if(TTS_MathUtils.getCardNumInPage(cardCount)!=0){
-			cardCount = TTS_MathUtils.getStartOfNextPage(cardCount);
-		}
+		cardCount = TTS_MathUtils.getStartOfNextPage(cardCount);
+
 		cardCount = stitchCards(deck, deck.getTokenList(), cardCount, gs);
+
+		cardCount = TTS_MathUtils.getStartOfNextPage(cardCount);
+
+		cardCount =  stitchCards(deck, deck.getTransformList(), cardCount, gs);
 
 		for(int i = 0; i < gs.length; i++) {
 			gs[i].dispose();
@@ -313,13 +320,14 @@ public class ImageUtils {
 
 		for(int i = 0; i < stitches.size(); i++) {
 			SaveImage(stitches.get(i), deck.getImageOutCompressionLevel());
-			deck.getHostedImageUrls().add(postImage(stitches.get(i).getImagePath()));
+			String resultUrl = postImage(stitches.get(i).getImagePath());
+			System.out.println("uploaded to " + resultUrl);
+			deck.getHostedImageUrls().add(resultUrl);
 		}
 
 	}
-	
+
 	public static String postImage(String f){
-		//TODO: revisit to ensure still works, add libraries to maven
 		if(f.startsWith(".")){
 			f = f.substring(1);
 		}
