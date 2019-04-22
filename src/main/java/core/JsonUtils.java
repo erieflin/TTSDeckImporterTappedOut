@@ -90,8 +90,8 @@ public class JsonUtils {
 			page.setPageNumber(deckID);
 			pages.getPageList().add(page);
 			if(uniqueBack){
-				page.setFaceUrl(deck.getHostedImageUrls().get(deckID));
-				page.setBackUrl(deck.getHostedImageUrls().get(deckID-1)+ "{Unique}");
+				page.setFaceUrl(deck.getHostedImageUrls().get(deckID-1));
+				page.setBackUrl(deck.getHostedImageUrls().get(deckID)+ "{Unique}");
 			}else{
 				page.setFaceUrl(deck.getHostedImageUrls().get(deckID-1));
 				page.setBackUrl(deck.getHostedImageUrls().get(deckID-1));

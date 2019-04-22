@@ -253,8 +253,9 @@ public class ImageUtils {
 				deck.addCardToTTSDeckMap(board, ttsCard);
 				deck.addCardToTTSDeckMap(TTS_DeckConstants.TRANSFORMKEY, ttsCard);
 				DoubleFacedCard dfCard = ((DoubleFacedCard) card);
-				addCardToGraphics(cardNum, dfCard.getBackCardImage(), gs[pageId - 1]);
-				addCardToGraphics(cardNum, dfCard.getCardImage(), gs[pageId]);
+				addCardToGraphics(cardNum, dfCard.getCardImage(), gs[pageId-1]);
+				addCardToGraphics(cardNum, dfCard.getBackCardImage(), gs[pageId]);
+
 				startCount++;
 			}else {
 				if (card instanceof Card) {
