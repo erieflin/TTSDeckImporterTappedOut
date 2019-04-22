@@ -52,6 +52,12 @@ public class Scryfall extends AbstractCardImporter
     }
 
     @Override
+    protected String getSourceName()
+    {
+        return "Scryfall";
+    }
+
+    @Override
     protected Card loadCardFromImporter(CardParams parameters)
     {
         String url = ScryfallQueryURL(parameters.cardName);
