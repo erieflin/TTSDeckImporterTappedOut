@@ -3,6 +3,8 @@ package importObjects;
 import core.Util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import importObjects.CardDetails.*;
 
@@ -44,6 +46,17 @@ public class CardParams
             this.qty = 1;   //Default quantity
         }
 
+        public CardParamsBuilder(CardParams cardParams)   //TODO parse the name for Double-sided cards or create a cardname class to do so
+        {
+            if(Util.NullOrWhitespace(cardParams.cardName))
+                throw new IllegalArgumentException("Card name cannot be null or blank");
+
+            this.cardName = cardParams.cardName;
+            this.modifiers = Arrays.asList(cardParams.modifiers);
+            this.qty = cardParams.qty;
+            this.board = cardParams.board;
+            this.set = cardParams.set;
+        }
         public CardParamsBuilder set(String set)    //TODO change to set acronym, make a parser to get the correct associated set?
         {
             if(Util.NullOrWhitespace(set))

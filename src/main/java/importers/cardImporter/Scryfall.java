@@ -76,7 +76,9 @@ public class Scryfall extends AbstractCardImporter
         }
 
         ScryfallCardDTO scryfallCard = gson.fromJson(result,ScryfallCardDTO.class);
-
+        if(parameters.set== null || parameters.set.length() == 0){
+            parameters =  new CardParams.CardParamsBuilder(parameters).set(scryfallCard.getSet()).build();
+        }
         List<CardFaceDTO> faces = scryfallCard.getCardFaces();
         Card importedCard;
         if(faces != null && faces.size()>0) {

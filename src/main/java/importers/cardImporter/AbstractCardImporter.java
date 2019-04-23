@@ -39,7 +39,7 @@ public abstract class AbstractCardImporter
         }
         catch(SQLException e)
         {
-           e.printStackTrace(); //TODO failing on save due to Card object lacking set - need to probably require for Card & set in importer
+           e.printStackTrace();
         }
         catch(IOException e)
         {

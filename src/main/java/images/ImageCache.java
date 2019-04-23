@@ -241,7 +241,7 @@ public class ImageCache
         {
             query = queryCardWithoutSet;
             query.setString(1, params.cardName);
-            query.setString(2, params.cardName);
+            query.setString(2, sourceName);
         }
         else
         {
