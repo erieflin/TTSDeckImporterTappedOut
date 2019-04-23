@@ -2,12 +2,9 @@ package core;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import constants.TTS_DeckConstants;
+import constants.DeckConstants;
 import exportObjects.*;
-import importObjects.Card;
 import importObjects.CardDetails;
-import importObjects.DoubleFacedCard;
-import importObjects.Token;
 import importObjects.deck.AbstractDeck;
 import org.apache.http.MethodNotSupportedException;
 
@@ -94,7 +91,7 @@ public class JsonUtils {
 				page.setBackUrl(deck.getHostedImageUrls().get(deckID)+ "{Unique}");
 			}else{
 				page.setFaceUrl(deck.getHostedImageUrls().get(deckID-1));
-				page.setBackUrl(deck.getHostedImageUrls().get(deckID-1));
+				page.setBackUrl(DeckConstants.DEFAULTBACKURL);
 
 			}
 
@@ -128,7 +125,7 @@ public class JsonUtils {
 			TTS_Deck ttsDeck = NewDeckBaseObject(cardIds, pileName);
 			ttsDeck.setCards(cards);
 
-			boolean hasUniqueBack = key.equals(TTS_DeckConstants.TRANSFORMKEY);
+			boolean hasUniqueBack = key.equals(DeckConstants.TRANSFORMKEY);
 			ttsDeck.setCustomDeck(NewPagesObject(pageIds, deck, hasUniqueBack));
 
 			ttsDeck.setTransform(NewDeckPosObject(ii, ii, 0, hasUniqueBack, 1.0));

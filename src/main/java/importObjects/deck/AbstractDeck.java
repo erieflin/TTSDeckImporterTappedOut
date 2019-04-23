@@ -1,8 +1,10 @@
 package importObjects.deck;
 
+import constants.DeckConstants;
 import core.Constants;
 import exportObjects.ImagePage;
 import exportObjects.TTS_Card;
+import images.ImageUtils;
 import importObjects.Card;
 import importObjects.DoubleFacedCard;
 import importObjects.Token;
@@ -28,7 +30,15 @@ public abstract class AbstractDeck
     private double imageOutCompressionLevel = .25; // default output image compression config for this deck
     private List<String> hostedImageUrls = new ArrayList<String>();
     private HashMap<String, List<TTS_Card>> ttsDeckMap = new HashMap<String, List<TTS_Card>>();
+    private File backImage = getDeckImageFile();
 
+    private File getDeckImageFile(){
+        File f = new File(DeckConstants.DEFAULTBACKFILEPATH);
+        if(!f.exists()){
+            ImageUtils.downloadCardImageToFile(f, DeckConstants.DEFAULTBACKURL);
+        }
+        return f;
+    }
     protected AbstractDeck(AbstractDeckImporter importer, URL sleeveUrl)
     {
 //        name = importer.deckName; //TODO fill in
@@ -36,6 +46,7 @@ public abstract class AbstractDeck
         cardList = new ArrayList<Card>();
         tokenList = new ArrayList<Token>();
         sleeveImageUrl = sleeveUrl;
+        getDeckImageFile();
     }
 
     protected AbstractDeck(AbstractDeckImporter importer) throws MalformedURLException
@@ -146,5 +157,13 @@ public abstract class AbstractDeck
             this.ttsDeckMap.put(deckPile, new ArrayList<TTS_Card>());
         }
         this.ttsDeckMap.get(deckPile).add(card);
+    }
+
+    public File getBackImage() {
+        return backImage;
+    }
+
+    public void setBackImage(File backImage) {
+        this.backImage = backImage;
     }
 }

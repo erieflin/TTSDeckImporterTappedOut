@@ -3,7 +3,9 @@ package importers.cardImporter;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import constants.DeckConstants;
 import core.Util;
+import images.ImageUtils;
 import importObjects.Card;
 import importObjects.CardParams;
 import importObjects.DoubleFacedCard;
@@ -34,7 +36,7 @@ public class Scryfall extends AbstractCardImporter
     public static final String SCRYFALL_CARDS_ID = "cards";
     public static final String SCRYFALL_PRINTING_ID = "printings";
     private static final String DEFAULT_SIZE = "normal";
-    private static final String CARD_IMAGE_FOLDER = "cardImages";
+
     private static final Gson gson = new Gson();
     public Scryfall()
     {
@@ -99,7 +101,7 @@ public class Scryfall extends AbstractCardImporter
 
             CardFaceIODTO frontCard = cardFaceIoDetails.get(0);
             if(!frontCard.getDestFile().exists()) {
-                if (!downloadCardImageToFile(frontCard.getDestFile(), frontCard.getUri())) {
+                if (!ImageUtils.downloadCardImageToFile(frontCard.getDestFile(), frontCard.getUri())) {
                     return null;
                 }
             }
@@ -107,7 +109,7 @@ public class Scryfall extends AbstractCardImporter
 
             CardFaceIODTO backCard= cardFaceIoDetails.get(1);
             if(!backCard.getDestFile().exists()) {
-                if (!downloadCardImageToFile(backCard.getDestFile(), backCard.getUri())) {
+                if (!ImageUtils.downloadCardImageToFile(backCard.getDestFile(), backCard.getUri())) {
                     return null;
                 }
             }
@@ -126,7 +128,7 @@ public class Scryfall extends AbstractCardImporter
 
             File image = getFileForCard(scryfallCard.getName(), scryfallCard.getSet());
             if(!image.exists()) {
-                if (!downloadCardImageToFile(image, uri)) {
+                if (!ImageUtils.downloadCardImageToFile(image, uri)) {
                     return null;
                 }
             }
@@ -139,24 +141,14 @@ public class Scryfall extends AbstractCardImporter
 
     private File getFileForCard(String name, String set){
 
-        File destFile = new File(CARD_IMAGE_FOLDER + File.separator + name + "_" + set + ".png");
+        File destFile = new File(DeckConstants.CARD_IMAGE_FOLDER + File.separator + name + "_" + set + ".png");
         if(!destFile.getParentFile().exists()){
             destFile.getParentFile().mkdirs();
         }
         return destFile;
     }
 
-    private boolean downloadCardImageToFile(File destFile, String uri){
-        try(InputStream in = new URL(uri).openStream()){
-            Files.copy(in, destFile.toPath());
-            return true;
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+
 
     private JsonObject getCorrectCardBySet(JsonObject input, String requestedSet){
         JsonObject result;

@@ -1,7 +1,6 @@
 package images;
 
-import com.sun.corba.se.impl.orbutil.graph.Graph;
-import constants.TTS_DeckConstants;
+import constants.DeckConstants;
 import core.CardUtils;
 import core.TTS_MathUtils;
 import exportObjects.TTS_Card;
@@ -26,18 +25,19 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
-import java.awt.Graphics;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ImageUtils {
 	public static ArrayList<BufferedImage> freeBuffers = new ArrayList<BufferedImage>();
@@ -69,11 +69,11 @@ public class ImageUtils {
 		return img;
 	}
 //
-//	public static void FreeAllBuffers(){
-//		for(int i = occupiedBuffers.size()-1; i >= 0; i--){
-//			freeBuffers.add(occupiedBuffers.remove(i));
-//		}
-//	}
+	public static void FreeAllBuffers(){
+		for(int i = occupiedBuffers.size()-1; i >= 0; i--){
+			freeBuffers.add(occupiedBuffers.remove(i));
+		}
+	}
 //
 //	public static void AttemptClearFailedCards(){
 //		long curTime = System.currentTimeMillis();
@@ -250,13 +250,13 @@ public class ImageUtils {
 
 			String board = CardDetails.Board.SIDEBOARD.toString();
 			if(CardUtils.checkCardHasTag(card, CardDetails.Tag.COMMANDER)){
-				board = TTS_DeckConstants.COMMANDER;
+				board = DeckConstants.COMMANDER;
 			}
 
 			if(card instanceof  DoubleFacedCard) {
 				DoubleFacedCard dfCard = ((DoubleFacedCard) card);
 				deck.addCardToTTSDeckMap(board, ttsCard);
-				deck.addCardToTTSDeckMap(TTS_DeckConstants.TRANSFORMKEY, ttsCard);
+				deck.addCardToTTSDeckMap(DeckConstants.TRANSFORMKEY, ttsCard);
 				addCardToGraphics(cardNum, dfCard.getCardImage(), gs[pageId-1]);
 				addCardToGraphics(cardNum, dfCard.getBackCardImage(), gs[pageId]);
 				startCount++;
@@ -267,7 +267,7 @@ public class ImageUtils {
 					deck.addCardToTTSDeckMap(board, ttsCard);
 				}
 				else if (card instanceof Token) {
-					deck.addCardToTTSDeckMap(TTS_DeckConstants.TOKENKEY, ttsCard);
+					deck.addCardToTTSDeckMap(DeckConstants.TOKENKEY, ttsCard);
 				} else {
 					deck.addCardToTTSDeckMap(board, ttsCard);
 				}
@@ -295,9 +295,15 @@ public class ImageUtils {
 		gs[i].setColor(Color.BLACK);
 		gs[i].fillRect(0, 0, TTS_MathUtils.CARDWIDTH * 10, TTS_MathUtils.CARDHEIGHT * 7);
 		// TODO: Add card back here
-		//			if(deck.hiddenImage != null){
-		//				gs[i].drawImage(deck.hiddenImage, cardWidth * 9, cardHeight * 6, cardWidth, cardHeight, null);
-		//			}
+		if (deck.getBackImage() != null) {
+			try {
+				BufferedImage cardImage = ImageIO.read(deck.getBackImage());
+				gs[i].drawImage(cardImage, TTS_MathUtils.CARDWIDTH * 9, TTS_MathUtils.CARDHEIGHT * 6,
+						TTS_MathUtils.CARDWIDTH, TTS_MathUtils.CARDHEIGHT, null);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		stitches.add(stitchedImg);
 		}
 		return gs;
@@ -330,6 +336,7 @@ public class ImageUtils {
 			deck.getHostedImageUrls().add(resultUrl);
 		}
 
+		FreeAllBuffers();
 	}
 
 	public static String postImage(String f){
@@ -400,5 +407,17 @@ public class ImageUtils {
 
 
 		return "";
+	}
+
+	public static boolean downloadCardImageToFile(File destFile, String uri){
+		try(InputStream in = new URL(uri).openStream()){
+			Files.copy(in, destFile.toPath());
+			return true;
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 }
