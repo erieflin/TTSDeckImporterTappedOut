@@ -2,12 +2,10 @@ package images;
 
 import com.sun.corba.se.impl.orbutil.graph.Graph;
 import constants.TTS_DeckConstants;
+import core.CardUtils;
 import core.TTS_MathUtils;
 import exportObjects.TTS_Card;
-import importObjects.BaseCard;
-import importObjects.Card;
-import importObjects.DoubleFacedCard;
-import importObjects.Token;
+import importObjects.*;
 import importObjects.deck.AbstractDeck;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -37,6 +35,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -248,24 +247,29 @@ public class ImageUtils {
 			ttsCard.setNickname(card.getCardName());
 			ttsCard.setCardId(cardId);
 			ttsCard.setPageId(pageId);
+
+			String board = CardDetails.Board.SIDEBOARD.toString();
+			if(CardUtils.checkCardHasTag(card, CardDetails.Tag.COMMANDER)){
+				board = TTS_DeckConstants.COMMANDER;
+			}
+
 			if(card instanceof  DoubleFacedCard) {
-				String board = ((Card) card).getBoard().toString();
+				DoubleFacedCard dfCard = ((DoubleFacedCard) card);
 				deck.addCardToTTSDeckMap(board, ttsCard);
 				deck.addCardToTTSDeckMap(TTS_DeckConstants.TRANSFORMKEY, ttsCard);
-				DoubleFacedCard dfCard = ((DoubleFacedCard) card);
 				addCardToGraphics(cardNum, dfCard.getCardImage(), gs[pageId-1]);
 				addCardToGraphics(cardNum, dfCard.getBackCardImage(), gs[pageId]);
-
 				startCount++;
-			}else {
-				if (card instanceof Card) {
-					String board = ((Card) card).getBoard().toString();
+			} else {
+				if( card instanceof  Card){
+					Card cardObj = (Card) card;
+					board = cardObj.getBoard().toString();
 					deck.addCardToTTSDeckMap(board, ttsCard);
-				} else if (card instanceof Token) {
+				}
+				else if (card instanceof Token) {
 					deck.addCardToTTSDeckMap(TTS_DeckConstants.TOKENKEY, ttsCard);
 				} else {
-					String board = ((Card) card).getBoard().toString();
-					deck.addCardToTTSDeckMap("Unknown", ttsCard);
+					deck.addCardToTTSDeckMap(board, ttsCard);
 				}
 
 				addCardToGraphics(cardNum, card.getCardImage(), gs[pageId - 1]);
