@@ -3,7 +3,7 @@ package importers.cardImporter;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import constants.DeckConstants;
+import core.Constants;
 import core.Util;
 import images.ImageUtils;
 import importObjects.Card;
@@ -141,7 +141,7 @@ public class Scryfall extends AbstractCardImporter
 
     private File getFileForCard(String name, String set){
 
-        File destFile = new File(DeckConstants.CARD_IMAGE_FOLDER + File.separator + name + "_" + set + ".png");
+        File destFile = new File(Constants.CARD_IMAGE_FOLDER + File.separator + name + "_" + set + ".png");
         if(!destFile.getParentFile().exists()){
             destFile.getParentFile().mkdirs();
         }

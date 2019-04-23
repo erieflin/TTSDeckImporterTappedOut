@@ -1,8 +1,6 @@
 package importObjects.deck;
 
-import constants.DeckConstants;
 import core.Constants;
-import exportObjects.ImagePage;
 import exportObjects.TTS_Card;
 import images.ImageUtils;
 import importObjects.Card;
@@ -16,7 +14,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Timer;
 import java.util.stream.Collectors;
 
 public abstract class AbstractDeck
@@ -33,9 +30,9 @@ public abstract class AbstractDeck
     private File backImage = getDeckImageFile();
 
     private File getDeckImageFile(){
-        File f = new File(DeckConstants.DEFAULTBACKFILEPATH);
+        File f = new File(Constants.DEFAULT_SLEEVE_IMAGE_FILE_PATH);
         if(!f.exists()){
-            ImageUtils.downloadCardImageToFile(f, DeckConstants.DEFAULTBACKURL);
+            ImageUtils.downloadCardImageToFile(f, Constants.DEFAULT_SLEEVE_IMAGE_URL);
         }
         return f;
     }

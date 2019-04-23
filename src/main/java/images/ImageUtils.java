@@ -1,7 +1,7 @@
 package images;
 
-import constants.DeckConstants;
 import core.CardUtils;
+import core.Constants;
 import core.TTS_MathUtils;
 import exportObjects.TTS_Card;
 import importObjects.*;
@@ -250,13 +250,13 @@ public class ImageUtils {
 
 			String board = CardDetails.Board.SIDEBOARD.toString();
 			if(CardUtils.checkCardHasTag(card, CardDetails.Tag.COMMANDER)){
-				board = DeckConstants.COMMANDER;
+				board = Constants.COMMANDER;
 			}
 
 			if(card instanceof  DoubleFacedCard) {
 				DoubleFacedCard dfCard = ((DoubleFacedCard) card);
 				deck.addCardToTTSDeckMap(board, ttsCard);
-				deck.addCardToTTSDeckMap(DeckConstants.TRANSFORMKEY, ttsCard);
+				deck.addCardToTTSDeckMap(Constants.TRANSFORMKEY, ttsCard);
 				addCardToGraphics(cardNum, dfCard.getCardImage(), gs[pageId-1]);
 				addCardToGraphics(cardNum, dfCard.getBackCardImage(), gs[pageId]);
 				startCount++;
@@ -267,7 +267,7 @@ public class ImageUtils {
 					deck.addCardToTTSDeckMap(board, ttsCard);
 				}
 				else if (card instanceof Token) {
-					deck.addCardToTTSDeckMap(DeckConstants.TOKENKEY, ttsCard);
+					deck.addCardToTTSDeckMap(Constants.TOKENKEY, ttsCard);
 				} else {
 					deck.addCardToTTSDeckMap(board, ttsCard);
 				}
