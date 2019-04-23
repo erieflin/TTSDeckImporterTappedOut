@@ -88,6 +88,8 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
                 deckList.add(card);
         }
 
+
+
         //TODO redo what this returns - should return a full deck by parsing what type of deck this is and instantiating accordingly
         return deckList;
     }

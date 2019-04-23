@@ -63,6 +63,9 @@ public abstract class AbstractDeck
         //TODO implement
         try {
            this.cardList = deckImporter.importDeck();
+           this.cardList.forEach(card -> this.tokenList.addAll(card.getRelatedTokens()));
+           // remove duplicate tokens
+           this.tokenList = this.tokenList.stream().distinct().collect(Collectors.toList());
         }catch(Exception e){
             e.printStackTrace();
         }

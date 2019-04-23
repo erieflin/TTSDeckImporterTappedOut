@@ -11,6 +11,7 @@ import importObjects.CardParams;
 import importObjects.DoubleFacedCard;
 import importObjects.Scryfall.CardFaceDTO;
 import importObjects.Scryfall.ScryfallCardDTO;
+import importObjects.Token;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +65,6 @@ public class Scryfall extends AbstractCardImporter
     {
         String url = ScryfallQueryURL(parameters.cardName);
         JsonObject result = Util.getJsonFromURL(url);
-
         if (result.isJsonArray()) {
             //Need to select a single version based on the set
             result = getCorrectCardBySet(result, parameters.set);
@@ -79,9 +79,11 @@ public class Scryfall extends AbstractCardImporter
         if(parameters.set== null || parameters.set.length() == 0){
             parameters =  new CardParams.CardParamsBuilder(parameters).set(scryfallCard.getSet()).build();
         }
+
+
         List<CardFaceDTO> faces = scryfallCard.getCardFaces();
         Card importedCard;
-        if(faces != null && faces.size()>0) {
+        if(scryfallCard.getLayout().equalsIgnoreCase(Constants.TRANSFORMKEY) && faces != null && faces.size()>0) {
             List<CardFaceIODTO> cardFaceIoDetails = new ArrayList<CardFaceIODTO>();
 
             faces.forEach(face -> {
@@ -136,6 +138,29 @@ public class Scryfall extends AbstractCardImporter
             }
 
             importedCard = new Card(parameters, image);
+        }
+
+        if(scryfallCard.getAllParts()!= null && scryfallCard.getAllParts().size()>0){
+            scryfallCard.getAllParts().forEach(card->{
+                if(card.getComponent().equalsIgnoreCase(Constants.TOKENKEY)){
+                    File f = getFileForCard(card.getId().toString(), card.getName());
+                    Token token = new Token(card.getId(), card.getName(), f);
+                    if(!f.exists()) {
+                        JsonObject tokenJson = Util.getJsonFromURL(card.getUri().toString());
+                        ScryfallCardDTO scryfallToken = gson.fromJson(tokenJson, ScryfallCardDTO.class);
+                       //TODO: uri here is wrong, we need to pull json from this uri and grab the image inside that json
+                        HashMap<String, String> imageUris = scryfallToken.getImageUris();
+
+                        String uri = getUriFromImageUris(imageUris);
+
+                        if (ImageUtils.downloadCardImageToFile(f, uri)) {
+                            importedCard.getRelatedTokens().add(token);
+                        }
+                    }else{
+                        importedCard.getRelatedTokens().add(token);
+                    }
+                }
+            });
         }
 
         return importedCard;

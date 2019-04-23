@@ -93,9 +93,10 @@ public class TTS_MathUtils {
     }
 
     public static int getNumRequiredDeckPages(AbstractDeck deck){
-        int regularDecks = (int) Math.ceil((deck.getCardList().size() + deck.getTokenList().size())/(double)TTSPageMaxSize);
+        int regularDecks = (int) Math.ceil(deck.getCardList().size()/(double)TTSPageMaxSize);
+        int tokenDecks = (int) Math.ceil(deck.getTokenList().size()/(double)TTSPageMaxSize);
         int transformDecks = 2*(int) Math.ceil(deck.getTransformList().size() / (double)TTSPageMaxSize);
-        return regularDecks + transformDecks;
+        return regularDecks + tokenDecks + transformDecks;
     }
 
 }

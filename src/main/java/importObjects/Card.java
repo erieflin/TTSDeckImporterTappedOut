@@ -2,6 +2,7 @@ package importObjects;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class Card implements BaseCard
     private Board board;
     private Tag[] modifiers;
     private File cardImage;
+    private List<Token> relatedTokens = new ArrayList<Token>();
     private HashMap<Integer, TTS_Card> exportCards = new HashMap<Integer, TTS_Card>();
 
     public Card(CardParams params, File cardImage)
@@ -52,6 +54,14 @@ public class Card implements BaseCard
 
     public File getCardImage() {
         return cardImage;
+    }
+
+    public List<Token> getRelatedTokens() {
+        return relatedTokens;
+    }
+
+    public void setRelatedTokens(List<Token> relatedTokens) {
+        this.relatedTokens = relatedTokens;
     }
 
     public String toString(){
