@@ -247,14 +247,18 @@ public class ImageUtils {
 			ttsCard.setNickname(card.getCardName());
 			ttsCard.setCardId(cardId);
 			ttsCard.setPageId(pageId);
-
+			ttsCard.setQty(card.getQuantity());
 			String board = CardDetails.Board.SIDEBOARD.toString();
-			if(CardUtils.checkCardHasTag(card, CardDetails.Tag.COMMANDER)){
+			boolean isCommander = CardUtils.checkCardHasTag(card, CardDetails.Tag.COMMANDER);
+			if(isCommander){
 				board = Constants.COMMANDER;
 			}
 
 			if(card instanceof  DoubleFacedCard) {
 				DoubleFacedCard dfCard = ((DoubleFacedCard) card);
+				if(!isCommander){
+					board = dfCard.getBoard().toString();
+				}
 				deck.addCardToTTSDeckMap(board, ttsCard);
 				deck.addCardToTTSDeckMap(Constants.TRANSFORMKEY, ttsCard);
 				addCardToGraphics(cardNum, dfCard.getCardImage(), gs[pageId-1]);
@@ -263,10 +267,13 @@ public class ImageUtils {
 			} else {
 				if( card instanceof  Card){
 					Card cardObj = (Card) card;
-					board = cardObj.getBoard().toString();
+					if(!isCommander){
+						board = cardObj.getBoard().toString();
+					}
 					deck.addCardToTTSDeckMap(board, ttsCard);
 				}
 				else if (card instanceof Token) {
+
 					deck.addCardToTTSDeckMap(Constants.TOKENKEY, ttsCard);
 				} else {
 					deck.addCardToTTSDeckMap(board, ttsCard);

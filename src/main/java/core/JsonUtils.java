@@ -103,9 +103,11 @@ public class JsonUtils {
 	public static TTS_DeckCollection buildDecks(AbstractDeck deck){
 		TTS_DeckCollection collection = new TTS_DeckCollection();
         int ii =0;
+
 		for(String key: deck.getTTSDeckMap().keySet()){
             ii++;
 			List<TTS_Card> cards = deck.getTTSDeckMap().get(key);
+			List<TTS_Card> expandedCards = new ArrayList<TTS_Card>();
 			List<Integer> pageIds = new ArrayList<Integer>();
 			List<Integer> cardIds = new ArrayList<Integer>();
 
@@ -113,7 +115,11 @@ public class JsonUtils {
 				int cardId = card.getCardId();
 				int pageId = card.getPageId();
 				if(!pageIds.contains(pageId)) pageIds.add(pageId);
-				cardIds.add(cardId);
+
+				for(int i =0; i < card.getQty(); ++i){
+					cardIds.add(cardId);
+					expandedCards.add(card);
+				}
 			}
 
 			String pileName = key;
@@ -122,12 +128,13 @@ public class JsonUtils {
 			}
 
 			TTS_Deck ttsDeck = NewDeckBaseObject(cardIds, pileName);
-			ttsDeck.setCards(cards);
+			ttsDeck.setCards(expandedCards);
 
 			boolean hasUniqueBack = key.equals(Constants.TRANSFORMKEY);
+			boolean isCommander = key.equals(Constants.COMMANDER);
 			ttsDeck.setCustomDeck(NewPagesObject(pageIds, deck, hasUniqueBack));
 
-			ttsDeck.setTransform(NewDeckPosObject(ii, ii, 0, hasUniqueBack, 1.0));
+			ttsDeck.setTransform(NewDeckPosObject(ii, ii, 0, hasUniqueBack || isCommander, 1.0));
 
 
 			collection.getObjectStates().add(ttsDeck);

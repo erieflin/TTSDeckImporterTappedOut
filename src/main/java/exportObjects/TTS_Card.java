@@ -20,6 +20,7 @@ public class TTS_Card {
     private int CardId; //deck page of card+ card number out of 69 on that page
     private transient int pageId;
     private transient String cardName;
+    private transient int qty;
     private TransformObj Transform;
 
     public String getName() {
@@ -68,5 +69,13 @@ public class TTS_Card {
 
     public void setCardName(String cardName) {
         this.cardName = cardName;
+    }
+
+    public int getQty() {
+        return qty;
+    }
+
+    public void setQty(int qty) {
+        this.qty = qty;
     }
 }
