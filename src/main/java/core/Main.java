@@ -26,12 +26,12 @@ public class Main
         //"http://tappedout.net/mtg-decks/mayael-the-anima-irl/";
 
         URL url = new URL(someTappedOutUrl);
-
-//        TappedOutImporter importer = new TappedOutImporter(new Credentials(user, pass), new Scryfall(), url);
-//
-//        EDH deck = new EDH(importer);
-        TappedOutDraftImporter importer = new TappedOutDraftImporter(new Credentials(user, pass), new Scryfall(),"UMA",3);
-        Draft deck = new Draft(importer);
+        //TODO: uncomment for edh deck main
+        TappedOutImporter importer = new TappedOutImporter(new Credentials(user, pass), new Scryfall(), url);
+        EDH deck = new EDH(importer);
+        //TODO: uncomment for draft main
+        // TappedOutDraftImporter importer = new TappedOutDraftImporter(new Credentials(user, pass), new Scryfall(),"UMA",3);
+        // Draft deck = new Draft(importer);
         deck.setName("draftTestDeck");
         System.out.println("Importing Deck " + deck.getName());
         deck.importDeck();
