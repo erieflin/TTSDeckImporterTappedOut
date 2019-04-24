@@ -47,7 +47,7 @@ public class Scryfall extends AbstractCardImporter
     private static String ScryfallQueryURL(String cardName)
     {
         try {
-            return SCRYFALL_PRECEDE_QUERY+URLEncoder.encode(cardName, StandardCharsets.UTF_8.toString());
+            return SCRYFALL_PRECEDE_QUERY+ URLEncoder.encode(cardName, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             return SCRYFALL_PRECEDE_QUERY+cardName;
@@ -65,6 +65,9 @@ public class Scryfall extends AbstractCardImporter
     {
         String url = ScryfallQueryURL(parameters.cardName);
         JsonObject result = Util.getJsonFromURL(url);
+        if(result == null){
+            return null;
+        }
         if (result.isJsonArray()) {
             //Need to select a single version based on the set
             result = getCorrectCardBySet(result, parameters.set);
@@ -83,7 +86,8 @@ public class Scryfall extends AbstractCardImporter
 
         List<CardFaceDTO> faces = scryfallCard.getCardFaces();
         Card importedCard;
-        if(scryfallCard.getLayout().equalsIgnoreCase(Constants.TRANSFORMKEY) && faces != null && faces.size()>0) {
+        boolean hasBack =scryfallCard.getLayout().equalsIgnoreCase(Constants.TRANSFORMKEY) || scryfallCard.getLayout().equalsIgnoreCase(Constants.MELDKEY);
+        if(hasBack && faces != null && faces.size()>0) {
             List<CardFaceIODTO> cardFaceIoDetails = new ArrayList<CardFaceIODTO>();
 
             faces.forEach(face -> {
@@ -142,7 +146,9 @@ public class Scryfall extends AbstractCardImporter
 
         if(scryfallCard.getAllParts()!= null && scryfallCard.getAllParts().size()>0){
             scryfallCard.getAllParts().forEach(card->{
-                if(card.getComponent().equalsIgnoreCase(Constants.TOKENKEY)){
+                boolean isAProduct = card.getComponent().equalsIgnoreCase(Constants.TOKENKEY)
+                        || card.getTypeLine().toLowerCase().contains(Constants.EMBLEMKEY.toLowerCase());
+                if(isAProduct){
                     File f = getFileForCard(card.getId().toString(), card.getName());
                     Token token = new Token(card.getId(), card.getName(), f);
                     if(!f.exists()) {
@@ -167,11 +173,19 @@ public class Scryfall extends AbstractCardImporter
     }
 
     private File getFileForCard(String name, String set){
+        String filePath = null;
 
-        File destFile = new File(Constants.CARD_IMAGE_FOLDER + File.separator + name + "_" + set + ".png");
+        String cardNameContribution = name + "_" + set;
+        cardNameContribution = Util.sanitizeFilename(cardNameContribution);
+
+        filePath = Constants.CARD_IMAGE_FOLDER + File.separator + cardNameContribution + ".png";
+
+        File destFile = new File(filePath);
+
         if(!destFile.getParentFile().exists()){
             destFile.getParentFile().mkdirs();
         }
+
         return destFile;
     }
 

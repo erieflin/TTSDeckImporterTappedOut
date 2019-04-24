@@ -22,6 +22,7 @@ public class Util
 
             return root.getAsJsonObject();
         } catch(Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -31,5 +32,7 @@ public class Util
         return s == null || s.trim().equalsIgnoreCase("");
     }
 
-
+    public static String sanitizeFilename(String inputName) {
+        return inputName.replaceAll("[^a-zA-Z0-9-_, \\.]", "_");
+    }
 }

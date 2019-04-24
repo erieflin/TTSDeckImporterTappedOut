@@ -1,5 +1,7 @@
 package importObjects.Scryfall;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.net.URI;
 import java.util.UUID;
 
@@ -8,7 +10,8 @@ public class RelatedCardObjectDTO {
     private String object;
     private String component;
     private String name;
-    private String type_line;
+    @SerializedName("type_line")
+    private String typeLine;
     private URI uri;
 
     public UUID getId() {
@@ -43,12 +46,12 @@ public class RelatedCardObjectDTO {
         this.name = name;
     }
 
-    public String getType_line() {
-        return type_line;
+    public String getTypeLine() {
+        return typeLine;
     }
 
-    public void setType_line(String type_line) {
-        this.type_line = type_line;
+    public void setTypeLine(String typeLine) {
+        this.typeLine = typeLine;
     }
 
     public URI getUri() {

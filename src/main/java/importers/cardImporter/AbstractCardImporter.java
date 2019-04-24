@@ -34,7 +34,9 @@ public abstract class AbstractCardImporter
                 return localCard;
             }
             webCard = loadCardFromImporter(setup);
-            imageCache.saveCardtoCache(webCard, sourceName);
+            if(webCard!= null){
+                imageCache.saveCardtoCache(webCard, sourceName);
+            }
             return webCard;
         }
         catch(SQLException e)

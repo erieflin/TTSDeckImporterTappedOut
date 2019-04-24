@@ -13,6 +13,7 @@ import org.sqlite.SQLiteConfig;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -56,15 +57,22 @@ public class TappedOutDraftImporter extends AbstractDeckImporter {
 
     @Override
     public List<Card> importDeck() throws IOException {
-        List<Card> deckList = new ArrayList<Card>();
         URL request = new URL(buildTappedOutAPIURL(packDistribution));
+        JsonObject root = getJsonFromUrl(request, credentials);
+        return buildDecklistFromJson(root);
+    }
 
+    private static JsonObject getJsonFromUrl(URL request, Credentials credentials) throws IOException {
         URLConnection urlConnection = request.openConnection();
         urlConnection.setRequestProperty("Cookie", "tapped="+TappedOutImporter.getLoginCookie(credentials));
 
         InputStreamReader reader = new InputStreamReader(urlConnection.getInputStream());
         JsonParser jp = new JsonParser();
-        JsonObject root = jp.parse(reader).getAsJsonObject();
+        return jp.parse(reader).getAsJsonObject();
+    }
+
+    private List<Card> buildDecklistFromJson(JsonObject root){
+        List<Card> deckList = new ArrayList<Card>();
 
         for(String set: packDistribution.keySet()){
             JsonArray setArray = root.getAsJsonArray(set);
@@ -88,10 +96,8 @@ public class TappedOutDraftImporter extends AbstractDeckImporter {
                 }
             }
         }
-
         return deckList;
     }
-
 }
 
 

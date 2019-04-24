@@ -87,9 +87,9 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
 
             if(card != null)
                 deckList.add(card);
+
+            //TODO: Else to add card to failed cards list
         }
-
-
 
         //TODO redo what this returns - should return a full deck by parsing what type of deck this is and instantiating accordingly
         return deckList;
