@@ -1,5 +1,7 @@
 package importObjects;
 
+import core.Constants;
+
 import java.io.File;
 import java.util.Objects;
 import java.util.UUID;
@@ -38,6 +40,11 @@ public class Token implements BaseCard
 
     public int getQuantity() {
         return quantity;
+    }
+
+    @Override
+    public String getTTSPile() {
+        return Constants.TOKENKEY;
     }
 
     public File getCardImage() {

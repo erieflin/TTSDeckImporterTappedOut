@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import core.CardUtils;
+import core.Constants;
 import exportObjects.TTS_Card;
 import importObjects.CardDetails.*;
 import org.jsoup.Connection;
@@ -21,7 +23,7 @@ public class Card implements BaseCard
     private File cardImage;
     private List<Token> relatedTokens = new ArrayList<Token>();
     private HashMap<Integer, TTS_Card> exportCards = new HashMap<Integer, TTS_Card>();
-
+    private String desiredTTSPile = "";
     public Card(CardParams params, File cardImage)
     {
         this.cardName = params.cardName;
@@ -62,6 +64,23 @@ public class Card implements BaseCard
 
     public void setRelatedTokens(List<Token> relatedTokens) {
         this.relatedTokens = relatedTokens;
+    }
+
+    public String getTTSPile() {
+        if(desiredTTSPile!= null && desiredTTSPile.length() >0) {
+            return desiredTTSPile;
+        }
+        if( CardUtils.checkCardHasTag(this, CardDetails.Tag.COMMANDER)){
+            return Constants.COMMANDER;
+        }
+        if(board!= null){
+            return board.toString();
+        }
+        return Board.SIDEBOARD.toString();
+    }
+
+    public void setDesiredTTSPile(String desiredTTSPile) {
+        this.desiredTTSPile = desiredTTSPile;
     }
 
     public String toString(){

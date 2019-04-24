@@ -73,13 +73,7 @@ public class TappedOutDraftImporter extends AbstractDeckImporter {
 
                 //TODO: temporary, will need to pass through piles somehow more permanant
                 String boardStr = CardDetails.Board.MAIN.toString();
-                switch (pack){
-                    case 1:
-                        boardStr = CardDetails.Board.SIDEBOARD.toString();
-                        break;
-                    case 2:
-                        boardStr = CardDetails.Board.MAYBEBOARD.toString();
-                }
+
                 // load cards in each pack
                 JsonArray packCards = setArray.get(pack).getAsJsonArray();
                 for(int card=0; card< packCards.size(); card++){
@@ -88,6 +82,7 @@ public class TappedOutDraftImporter extends AbstractDeckImporter {
                     CardParams params = new CardParams.CardParamsBuilder(name).set(set)
                             .board(CardDetails.Board.getFromString(boardStr)).qty(1).build();
                     Card importedCard = this.cardImporter.loadCard(params);
+                    importedCard.setDesiredTTSPile("Booster # " + pack+1);
                     if(importedCard != null)
                         deckList.add(importedCard);
                 }
