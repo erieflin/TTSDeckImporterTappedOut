@@ -45,7 +45,8 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
         URL request = new URL(TAPPED_OUT_API_URL + urlDeckName);
 
         URLConnection urlConnection = request.openConnection();
-        urlConnection.setRequestProperty("Cookie", "tapped="+getLoginCookie());
+        loginCookie = getLoginCookie(credentials);
+        urlConnection.setRequestProperty("Cookie", "tapped="+loginCookie);
 
         InputStreamReader reader = new InputStreamReader(urlConnection.getInputStream());
 
@@ -116,12 +117,9 @@ public class TappedOutImporter extends AbstractUrlDeckImporter
         String user;
     }
 
-    private String getLoginCookie() throws IOException
+    protected static String getLoginCookie(Credentials credentials) throws IOException
     {
-        if(loginCookie != null)
-        {
-            return loginCookie;
-        }
+        String loginCookie;
 
         CookieManager cookieManager = new CookieManager();
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);

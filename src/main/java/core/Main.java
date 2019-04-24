@@ -1,8 +1,10 @@
 package core;
 
 import images.ImageUtils;
+import importObjects.deck.constructed.Draft;
 import importObjects.deck.constructed.EDH;
 import importers.cardImporter.Scryfall;
+import importers.deckImporter.TappedOutDraftImporter;
 import importers.deckImporter.TappedOutImporter;
 
 import java.io.IOException;
@@ -25,10 +27,12 @@ public class Main
 
         URL url = new URL(someTappedOutUrl);
 
-        TappedOutImporter importer = new TappedOutImporter(new Credentials(user, pass), new Scryfall(), url);
-
-        EDH deck = new EDH(importer);
-        deck.setName("glissaTestDeck");
+//        TappedOutImporter importer = new TappedOutImporter(new Credentials(user, pass), new Scryfall(), url);
+//
+//        EDH deck = new EDH(importer);
+        TappedOutDraftImporter importer = new TappedOutDraftImporter(new Credentials(user, pass), new Scryfall(),"UMA",3);
+        Draft deck = new Draft(importer);
+        deck.setName("draftTestDeck");
         System.out.println("Importing Deck " + deck.getName());
         deck.importDeck();
         System.out.println("Stitching Deck " + deck.getName());
