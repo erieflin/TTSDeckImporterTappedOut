@@ -26,14 +26,14 @@ public class TappedOutDraftImporter extends AbstractDeckImporter {
     private static final String TAPPED_OUT_DRAFT_API_URL = "http://tappedout.net/api/mtg/booster/?";
     private int packCount;
     private HashMap<String, Integer> packDistribution;
-    private Credentials credentials;
-    public TappedOutDraftImporter(Credentials credentials, AbstractCardImporter cardImportMethod, String set, int packCount) {
-        this(credentials, cardImportMethod, buildSimplePackDist(set,packCount));
+
+    public TappedOutDraftImporter( AbstractCardImporter cardImportMethod, String set, int packCount) {
+        this(cardImportMethod, buildSimplePackDist(set,packCount));
     }
-    public TappedOutDraftImporter(Credentials credentials, AbstractCardImporter cardImportMethod,HashMap<String, Integer>  packDistribution){
+
+    public TappedOutDraftImporter(AbstractCardImporter cardImportMethod,HashMap<String, Integer>  packDistribution){
         super(cardImportMethod);
         this.packDistribution = packDistribution;
-        this.credentials = credentials;
     }
 
     private static HashMap<String,Integer> buildSimplePackDist(String set, int count){
@@ -58,14 +58,12 @@ public class TappedOutDraftImporter extends AbstractDeckImporter {
     @Override
     public List<Card> importDeck() throws IOException {
         URL request = new URL(buildTappedOutAPIURL(packDistribution));
-        JsonObject root = getJsonFromUrl(request, credentials);
+        JsonObject root = getJsonFromUrl(request);
         return buildDecklistFromJson(root);
     }
 
-    private static JsonObject getJsonFromUrl(URL request, Credentials credentials) throws IOException {
+    private static JsonObject getJsonFromUrl(URL request) throws IOException {
         URLConnection urlConnection = request.openConnection();
-        urlConnection.setRequestProperty("Cookie", "tapped="+TappedOutImporter.getLoginCookie(credentials));
-
         InputStreamReader reader = new InputStreamReader(urlConnection.getInputStream());
         JsonParser jp = new JsonParser();
         return jp.parse(reader).getAsJsonObject();
@@ -90,7 +88,7 @@ public class TappedOutDraftImporter extends AbstractDeckImporter {
                     CardParams params = new CardParams.CardParamsBuilder(name).set(set)
                             .board(CardDetails.Board.getFromString(boardStr)).qty(1).build();
                     Card importedCard = this.cardImporter.loadCard(params);
-                    importedCard.setDesiredTTSPile("Booster # " + pack+1);
+                    importedCard.setDesiredTTSPile("Booster # " + (pack+1));
                     if(importedCard != null)
                         deckList.add(importedCard);
                 }

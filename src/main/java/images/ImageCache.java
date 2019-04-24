@@ -1,6 +1,7 @@
 package images;
 
 import core.Util;
+import core.Utils.SelectBuilder;
 import importObjects.Card;
 import importObjects.CardParams;
 import importObjects.DoubleFacedCard;
@@ -34,6 +35,8 @@ public class ImageCache
     private final static String FILE_IMAGE_SOURCE = "FILE_IMAGE_SOURCE";
     private final static String FILE_LOCAL_PATH = "FILE_LOCAL_PATH";
 
+    private final static String FRONT_PREFIX = "FRONT_";
+    private final static String BACK_PREFIX = "BACK_";
 
     private static ImageCache instance = null;
 
@@ -111,14 +114,29 @@ public class ImageCache
             " FOREIGN KEY({6}) REFERENCES {7}({8}) \n" +
             ");",
             CARD_TN, CARD_ID, CARD_NAME, CARD_SET_ACRONYM, CARD_IS_DOUBLE_SIDED, CARD_FRONT_IMAGE_FILE, CARD_BACK_IMAGE_FILE, FILE_TN, FILE_ID));
-
+        SelectBuilder withoutSetSelectBuilder = new SelectBuilder();
+        String queryCardSelectStmt = withoutSetSelectBuilder
+                .addColumn(CARD_ID)
+                .addColumn(CARD_NAME)
+                .addColumn(CARD_SET_ACRONYM)
+                .addColumn(CARD_IS_DOUBLE_SIDED)
+                .addColumn(CARD_FRONT_IMAGE_FILE)
+                .addColumn(CARD_BACK_IMAGE_FILE)
+                .addColumnWithTableNameAndAlias(FILE_TN + "1", FILE_ID,FRONT_PREFIX + FILE_ID)
+                .addColumnWithTableNameAndAlias(FILE_TN + "1", FILE_IMAGE_SOURCE , FRONT_PREFIX + FILE_IMAGE_SOURCE)
+                .addColumnWithTableNameAndAlias(FILE_TN + "1", FILE_LOCAL_PATH, FRONT_PREFIX + FILE_LOCAL_PATH)
+                .addColumnWithTableNameAndAlias(FILE_TN + "2", FILE_ID, BACK_PREFIX + FILE_ID)
+                .addColumnWithTableNameAndAlias(FILE_TN + "2", FILE_IMAGE_SOURCE, BACK_PREFIX + FILE_IMAGE_SOURCE)
+                .addColumnWithTableNameAndAlias(FILE_TN + "2", FILE_LOCAL_PATH, BACK_PREFIX + FILE_LOCAL_PATH)
+                .addColumn(IMAGE_SOURCE_NAME)
+                .addColumn(IMAGE_SOURCE_ID).toString();
         String queryCardWithoutSetStr = MessageFormat.format(
-    "SELECT *" +
-            " FROM {0}" +
-            " INNER JOIN {1} as {6} on {6}.{2} = {3}.{4}" +
-            " LEFT JOIN {1} as {7} on {7}.{2} = {3}.{5}" +
-            " INNER JOIN {9} on {9}.{10} = {6}.{11}" +
-            " WHERE {8} = ? AND {12} = ?",
+                queryCardSelectStmt +
+                        " FROM {0}" +
+                        " INNER JOIN {1} as {6} on {6}.{2} = {3}.{4}" +
+                        " LEFT JOIN {1} as {7} on {7}.{2} = {3}.{5}" +
+                        " INNER JOIN {9} on {9}.{10} = {6}.{11}" +
+                        " WHERE {8} = ? AND {12} = ?",
     CARD_TN, FILE_TN, FILE_ID, CARD_TN, CARD_FRONT_IMAGE_FILE, CARD_BACK_IMAGE_FILE, FILE_TN + "1", FILE_TN + "2", CARD_NAME, IMAGE_SOURCE_TN, IMAGE_SOURCE_ID, FILE_IMAGE_SOURCE, IMAGE_SOURCE_NAME);
 
         String queryCardWithSetStr = queryCardWithoutSetStr + " AND " + CARD_SET_ACRONYM + " = ?";
@@ -257,7 +275,7 @@ public class ImageCache
         if(results.next())
         {
             String name = results.getString(CARD_NAME);
-            File frontImage = new File(results.getString(FILE_TN + "1." + FILE_ID));
+            File frontImage = new File(results.getString(FRONT_PREFIX + FILE_ID));
 
             if(!results.getBoolean(CARD_IS_DOUBLE_SIDED))
             {
@@ -265,7 +283,7 @@ public class ImageCache
             }
             else
             {
-                File backImage = new File(results.getString(FILE_TN + "2." + FILE_ID));
+                File backImage = new File(results.getString(BACK_PREFIX+ FILE_ID));
 //                new DoubleFacedCard();
             }
         }
