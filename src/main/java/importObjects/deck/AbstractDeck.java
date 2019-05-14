@@ -8,9 +8,12 @@ import importObjects.DoubleFacedCard;
 import importObjects.Token;
 import importers.deckImporter.AbstractDeckImporter;
 
+import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,11 +26,23 @@ public abstract class AbstractDeck
     private List<Card> cardList;
     private List<Token> tokenList;
     private URL sleeveImageUrl;
-    private static final String DECKFOLDER = "DeckOutput";
+    private static final String DECKFOLDER = getDeckDirPath();
     private double imageOutCompressionLevel = .25; // default output image compression config for this deck
     private List<String> hostedImageUrls = new ArrayList<String>();
     private HashMap<String, List<TTS_Card>> ttsDeckMap = new HashMap<String, List<TTS_Card>>();
     private File backImage = getDeckImageFile();
+    String documents = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
+    private static String getDeckDirPath() {
+        String documents = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
+        Path path = Paths.get(documents, "My Games", "Tabletop Simulator", "Saves", "Saved Objects", "decks");
+        String deckDir = path.toString() + File.separator;
+        File f = path.toFile();
+        if (!f.exists()) {
+            f.mkdirs();
+
+        }
+        return deckDir;
+    }
 
     private File getDeckImageFile(){
         File f = new File(Constants.DEFAULT_SLEEVE_IMAGE_FILE_PATH);
